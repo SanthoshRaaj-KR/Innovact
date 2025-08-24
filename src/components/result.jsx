@@ -1,544 +1,194 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowRight, FaHome, FaChartBar, FaArrowLeft, FaEye, FaCog, FaShieldAlt, FaMicrophone, FaBrain, FaCheckCircle, FaExclamationTriangle, FaClock, FaLightbulb, FaWaveSquare } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Your DetailedAnalysis component remains unchanged.
-const DetailedAnalysis = ({ onBack }) => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+// --- Icons (remain the same) ---
+const HomeIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+);
+const WaveIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 12a5.983 5.983 0 01-.757 2.829 1 1 0 11-1.415-1.414A3.987 3.987 0 0013.5 12a3.987 3.987 0 00-.672-2.243 1 1 0 010-1.414z"/></svg>
+);
+const VideoIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+);
+const AlertIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+);
 
-  const detailedModels = [
-    {
-      id: 1,
-      name: "Micro Facial Changes Tracker",
-      subtitle: "Pixel-Level Facial Analysis",
-      score: 78,
-      confidence: "High",
-      icon: <FaEye className="text-2xl" />,
-      gradient: "from-purple-500 to-indigo-600",
-      description: "Advanced computer vision system that tracks minute facial inconsistencies, micro-expressions, and pixel-level anomalies that are invisible to the human eye but characteristic of deepfake generation.",
-      metrics: {
-        "Facial Consistency": 82,
-        "Micro-Expression": 74,
-        "Pixel Anomalies": 76,
-        "Edge Detection": 80
-      },
-      technicalDetails: "Employs sub-pixel analysis techniques with attention mechanisms to detect subtle inconsistencies in facial muscle movements and skin texture variations across video frames.",
-      processingTime: "2.1s",
-      dataPoints: "1,847 facial landmarks tracked"
-    },
-    {
-      id: 2,
-      name: "Frequency Domain Analyser",
-      subtitle: "Spectral Analysis Engine",
-      score: 69,
-      confidence: "Medium",
-      icon: <FaWaveSquare className="text-2xl" />,
-      gradient: "from-cyan-500 to-blue-600",
-      description: "Analyzes video content in the frequency domain to detect compression artifacts, temporal inconsistencies, and spectral signatures unique to AI-generated content.",
-      metrics: {
-        "Spectral Consistency": 71,
-        "Compression Artifacts": 67,
-        "Temporal Frequency": 72,
-        "Noise Pattern": 66
-      },
-      technicalDetails: "Uses Fourier transform analysis and wavelet decomposition to examine frequency patterns and detect anomalies in the spectral domain that indicate synthetic generation.",
-      processingTime: "3.4s",
-      dataPoints: "2,134 frequency bins analyzed"
-    },
-    {
-      id: 3,
-      name: "Graph Neural Network Model",
-      subtitle: "Relational Pattern Analysis",
-      score: 81,
-      confidence: "High",
-      icon: <FaBrain className="text-2xl" />,
-      gradient: "from-emerald-500 to-green-600",
-      description: "Advanced GNN architecture that models spatial and temporal relationships between facial features, detecting inconsistencies in feature correlations typical of deepfake generation.",
-      metrics: {
-        "Feature Correlation": 84,
-        "Spatial Relations": 79,
-        "Temporal Coherence": 83,
-        "Graph Connectivity": 78
-      },
-      technicalDetails: "Leverages graph convolutional networks to model complex relationships between facial landmarks and their temporal evolution, identifying unnatural correlation patterns.",
-      processingTime: "4.2s",
-      dataPoints: "156 graph nodes processed"
-    }
-  ];
 
-  const getScoreColor = (score) => {
-    if (score >= 70) return 'text-green-400';
-    if (score >= 50) return 'text-yellow-400';
-    return 'text-red-400';
-  };
-
-  const getScoreGradient = (score) => {
-    if (score >= 70) return 'from-red-500 to-red-600';
-    if (score >= 50) return 'from-yellow-500 to-orange-500';
-    return 'from-green-500 to-emerald-600';
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative"
-    >
-      {/* Professional Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900 to-slate-900"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      </div>
-
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-3 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all duration-300 border border-slate-700/50"
-            >
-              <FaArrowLeft className="text-cyan-400" />
-              <span className="text-slate-300">Back to Summary</span>
-            </button>
-            <div className="text-center">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                Detailed Analysis
-              </h1>
-              <p className="text-slate-400">Comprehensive AI Model Breakdown</p>
-            </div>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-12 relative">
-        {/* Summary Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
-        >
-          <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/30">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FaExclamationTriangle className="text-red-400 text-2xl" />
-              </div>
-              <div className="text-4xl font-bold text-red-400 mb-2">76%</div>
-              <div className="text-slate-300 font-medium">Deepfake Probability</div>
-              <div className="text-slate-500 text-sm mt-1">High Risk Detected</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/30">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FaBrain className="text-cyan-400 text-2xl" />
-              </div>
-              <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
-              <div className="text-slate-300 font-medium">AI Models</div>
-              <div className="text-slate-500 text-sm mt-1">Advanced Analysis</div>
-            </div>
-          </div>
-          <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/30">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-green-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FaClock className="text-emerald-400 text-2xl" />
-              </div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">9.7s</div>
-              <div className="text-slate-300 font-medium">Processing Time</div>
-              <div className="text-slate-500 text-sm mt-1">Real-time Analysis</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Model Analysis Cards */}
-        <div className="space-y-8">
-          {detailedModels.map((model, index) => (
-            <motion.div
-              key={model.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                duration: 0.6, 
-                delay: index * 0.1,
-                type: "spring",
-                stiffness: 100
-              }}
-              className="bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-xl rounded-3xl overflow-hidden border border-slate-700/30 shadow-2xl hover:shadow-cyan-500/5 hover:border-cyan-500/30 transition-all duration-500"
-            >
-              <div className="p-8">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-6">
-                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${model.gradient} shadow-lg`}>
-                      {model.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">{model.name}</h3>
-                      <p className="text-slate-400">{model.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-5xl font-bold mb-2 ${getScoreColor(model.score)}`}>
-                      {model.score}%
-                    </div>
-                    <div className={`text-sm px-4 py-2 rounded-xl ${
-                      model.confidence === 'High' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                      model.confidence === 'Medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                      'bg-red-500/20 text-red-400 border border-red-500/30'
-                    }`}>
-                      {model.confidence} Confidence
-                    </div>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-slate-300 mb-8 leading-relaxed text-lg">{model.description}</p>
-
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                  {Object.entries(model.metrics).map(([metric, value], i) => (
-                    <motion.div
-                      key={metric}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 + i * 0.05, duration: 0.3 }}
-                      className="bg-slate-700/40 rounded-2xl p-6 border border-slate-600/30 hover:border-cyan-500/30 transition-colors duration-300"
-                    >
-                      <div className="text-center">
-                        <div className={`text-3xl font-bold mb-3 ${getScoreColor(value)}`}>
-          _                  {value}%
-                        </div>
-                        <div className="text-slate-400 text-sm font-medium">{metric}</div>
-                      </div>
-                      {/* Progress bar */}
-                      <div className="mt-4 h-2 bg-slate-600/50 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${value}%` }}
-                          transition={{ delay: index * 0.1 + i * 0.05 + 0.3, duration: 0.8 }}
-                          className={`h-full bg-gradient-to-r ${getScoreGradient(value)} rounded-full shadow-lg`}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Technical Details */}
-                <div className="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/30">
-                  <div className="flex items-center gap-3 mb-4">
-                    <FaLightbulb className="text-yellow-400 text-xl" />
-                    <h4 className="text-xl font-semibold text-white">Technical Insights</h4>
-                  </div>
-                  <p className="text-slate-300 mb-6 leading-relaxed">{model.technicalDetails}</p>
-                  <div className="flex flex-col sm:flex-row gap-4 text-sm">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-700/40 rounded-xl">
-                      <FaClock className="text-cyan-400" />
-                      <span className="text-slate-400">Processing:</span>
-                      <span className="text-cyan-400 font-semibold">{model.processingTime}</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-700/40 rounded-xl">
-                      <FaChartBar className="text-emerald-400" />
-                      <span className="text-slate-400">Data Points:</span>
-                      <span className="text-emerald-400 font-semibold">{model.dataPoints}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom accent */}
-              <div className={`h-1 bg-gradient-to-r ${model.gradient}`} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
+// --- Centralized Data Configuration ---
+const analysisData = {
+  audio: {
+    title: "Audio Analysis",
+    subtitle: "Voice Deepfake Detection",
+    Icon: WaveIcon,
+    theme: {
+      backgroundGradient: "from-purple-900/20",
+      titleGradient: "from-purple-400 to-pink-400",
+      scoreGradientId: "scoreGradient",
+    },
+    features: [
+      { title: "Voice Pattern Analysis", description: "Advanced spectral analysis detected inconsistencies in vocal tract modeling and pitch variations typical of synthetic speech generation.", score: 84, details: ["Formant frequency anomalies", "Unnatural pitch transitions", "Missing micro-prosodic features"], icon: "🎵", gradient: "from-purple-500 to-indigo-600" },
+      { title: "Temporal Coherence Check", description: "AI-powered temporal analysis found irregular breathing patterns and inconsistent speech timing that indicate artificial generation.", score: 78, details: ["Irregular silence patterns", "Unnatural speech rhythm", "Missing background noise consistency"], icon: "⏱️", gradient: "from-cyan-500 to-blue-600" },
+      { title: "Neural Artifact Detection", description: "Deep learning model identified compression artifacts and neural network fingerprints characteristic of voice synthesis technology.", score: 91, details: ["GAN-specific artifacts detected", "Compression signature mismatch", "Neural processing residuals"], icon: "🧠", gradient: "from-emerald-500 to-green-600" },
+    ],
+  },
+  video: {
+    title: "Video Analysis",
+    subtitle: "Visual Deepfake Detection",
+    Icon: VideoIcon,
+    theme: {
+      backgroundGradient: "from-blue-900/20",
+      titleGradient: "from-blue-400 to-cyan-400",
+      scoreGradientId: "scoreGradient",
+    },
+    features: [
+        { title: "Facial Micro-Expression Analysis", description: "Advanced computer vision detected unnatural facial muscle movements and inconsistent micro-expressions across video frames.", score: 87, details: ["Asymmetric facial movements", "Missing eye blink patterns", "Unnatural muscle tension"], icon: "👁️", gradient: "from-blue-500 to-purple-600" },
+        { title: "Frame Consistency Detection", description: "Temporal analysis found inconsistencies in lighting, shadows, and background elements typical of deepfake generation.", score: 76, details: ["Inconsistent lighting direction", "Temporal artifacts in backgrounds", "Frame-to-frame quality variations"], icon: "🎬", gradient: "from-cyan-500 to-teal-600" },
+        { title: "Neural Network Fingerprinting", description: "AI model identified specific compression patterns and neural network artifacts characteristic of deepfake generation algorithms.", score: 92, details: ["GAN-specific compression patterns", "Neural upsampling artifacts", "Model-specific noise signatures"], icon: "🔍", gradient: "from-emerald-500 to-green-600" },
+    ],
+  },
 };
 
-const Result = () => {
-  const [showDetailed, setShowDetailed] = useState(false);
 
-  const modelResults = [
-    {
-      label: 'Micro Facial Changes',
-      value: 78,
-      confidence: 'High',
-      icon: <FaEye className="text-lg" />,
-      gradient: 'from-purple-500 to-indigo-600'
-    },
-    {
-      label: 'Frequency Domain',
-      value: 69,
-      confidence: 'Medium',
-      icon: <FaWaveSquare className="text-lg" />,
-      gradient: 'from-cyan-500 to-blue-600'
-    },
-    {
-      label: 'Graph Neural Network',
-      value: 81,
-      confidence: 'High',
-      icon: <FaBrain className="text-lg" />,
-      gradient: 'from-emerald-500 to-green-600'
-    }
-  ];
+// --- The Single, Reusable Result Component ---
+const AnalysisResult = ({ title, subtitle, Icon, theme, features }) => {
+  const [animationStarted, setAnimationStarted] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimationStarted(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const getConfidenceColor = (confidence) => {
-    switch(confidence) {
-      case 'High': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'Medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'Low': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default: return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-    }
-  };
+  const averageScore = Math.round(features.reduce((acc, f) => acc + f.score, 0) / features.length);
 
-  const getProgressColor = (value) => {
-    if (value >= 70) return 'from-red-500 to-red-600';
-    if (value >= 50) return 'from-yellow-500 to-orange-500';
-    return 'from-green-500 to-emerald-600';
-  };
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative">
+      {/* Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] ${theme.backgroundGradient} via-slate-900 to-slate-900`}></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+      </div>
 
-  return (
-    //  👇 THIS IS THE CORRECTED LINE 👇
-    <div className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative ${!showDetailed ? "h-screen overflow-hidden" : ""}`}>
-      {/* Professional Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-900 to-slate-900"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:60px_60px]"></div>
-      </div>
-
-      {/* Logo */}
-        <div className="absolute left-[2vw] flex items-center">
-            <img 
-              src="/logoGenReal.png"   // <-- Replace with your actual logo path
-              alt="GenReal.AI Logo" 
-              className="h-[3.5rem]" // adjust size as needed
+      {/* Logo */}
+          <div className="absolute left-[2vw] flex items-center">
+            <img src="/logoGenReal.png" alt="GenReal.AI Logo" className="h-[3.5rem]" 
+             onClick={() => window.location.href = "/"}
             />
           </div>
 
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* Left Side - Score Circle */}
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="flex flex-col items-center justify-center">
+            <div className="text-center mb-8">
+              <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }} className="text-4xl font-bold mb-4">
+                <span className={`bg-gradient-to-r ${theme.titleGradient} bg-clip-text text-transparent`}>{title}</span>
+              </motion.h1>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }} className="flex items-center justify-center gap-2 text-slate-400">
+                <Icon />
+                <span>{subtitle}</span>
+              </motion.div>
+            </div>
 
-      <AnimatePresence mode="wait">
-        {!showDetailed ? (
-          <motion.div
-            key="initial"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="h-screen flex items-center justify-center p-6"
-          >
-            <div className="w-full max-w-6xl relative z-10">
-              
-        _          {/* Header */}
-              <motion.div 
-                initial={{ opacity: 0, y: -30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="text-center mb-12"
-              >
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-4">
-                  Analysis Complete
-                </h1>
-                <p className="text-lg text-slate-400">AI-powered deepfake detection results</p>
-              </motion.div>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.6, duration: 1, type: "spring", stiffness: 100 }} className="relative">
+              <div className="w-80 h-80 relative">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+                  <defs>
+                    <linearGradient id={theme.scoreGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="100%" stopColor="#f97316" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-700"/>
+                  <motion.circle cx="100" cy="100" r="90" stroke={`url(#${theme.scoreGradientId})`} strokeWidth="12" fill="transparent" strokeDasharray={`${averageScore * 5.65} 565`} strokeLinecap="round" initial={{ strokeDasharray: "0 565" }} animate={animationStarted ? { strokeDasharray: `${averageScore * 5.65} 565` } : {}} transition={{ delay: 1, duration: 2, ease: "easeOut" }}/>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.5, duration: 0.8 }} className="text-7xl font-black text-red-400 mb-4">{averageScore}%</motion.div>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2, duration: 0.6 }} className="text-slate-400 text-xl">Deepfake Risk</motion.div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
 
-              {/* Main Content Grid */}
-              <div className="grid lg:grid-cols-2 gap-8 items-center mb-8">
-                
-                {/* Primary Score Card */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                  className="order-2 lg:order-1"
-                >
-                  <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl relative overflow-hidden">
-                    {/* Background decoration */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl"></div>
-                    
-                    <div className="relative z-10 text-center">
-                      {/* Status Icon */}
-                      <motion.div
-                        initial={{ scale: 0, rotate: 180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: 0.5, duration: 0.8, type: "spring" }}
-          _              className="w-16 h-16 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-500/30"
-                      >
-                        <FaExclamationTriangle className="text-red-400 text-2xl" />
-                      </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.2, duration: 0.6 }} className="mt-8 text-center">
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-full">
+                <AlertIcon />
+                <span className="text-red-400 font-semibold">High Risk Detected</span>
+              </div>
+            </motion.div>
+          </motion.div>
 
-                      {/* Score Circle */}
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.6, duration: 0.8, type: "spring" }}
-                        className="relative mb-6"
-                      >
-                        <div className="w-40 h-40 mx-auto relative">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="45"
-                              stroke="currentColor"
-                              strokeWidth="8"
-                              fill="transparent"
-                              className="text-slate-700"
-                            />
-                            <motion.circle
-                              cx="50"
-                              cy="50"
-                              r="45"
-                              stroke="currentColor"
-                              strokeWidth="8"
-                              fill="transparent"
-                              strokeDasharray={`${76 * 2.83} ${100 * 2.83}`}
-                              className="text-red-500"
-                              initial={{ strokeDasharray: "0 283" }}
-                              animate={{ strokeDasharray: `${76 * 2.83} ${100 * 2.83}` }}
-                              transition={{ delay: 0.8, duration: 1.2, ease: "easeOut" }}
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center">
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 1, duration: 0.5 }}
-                                className="text-4xl font-bold text-red-400 mb-1"
-                              >
-                                76%
-                              </motion.div>
-                              <div className="text-slate-400 text-sm">Risk Score</div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
+          {/* Right Side - Features */}
+          <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="space-y-6">
+            <div className="text-center lg:text-left mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">Detection Analysis</h2>
+              <p className="text-slate-400 text-lg">AI models analyzed your file across multiple detection vectors</p>
+            </div>
 
-                      {/* Result Label */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.2, duration: 0.6 }}
-                      >
-                        <h3 className="text-2xl font-bold text-red-400 mb-2">
-                          Likely Deepfake
-                        </h3>
-                        <p className="text-slate-300 text-sm leading-relaxed">
-                          High confidence detection based on AI consensus
-                        </p>
-                      </motion.div>
-                    </div>
-                  </div>
-                </motion.div>
+            {features.map((feature, index) => (
+              <motion.div key={index} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 + index * 0.2, duration: 0.6 }} className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-2xl font-bold shadow-lg`}>{feature.icon}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xl font-bold text-white">{feature.title}</h3>
+                      <div className="text-2xl font-bold text-red-400">{feature.score}%</div>
+                    </div>
+                    <p className="text-slate-300 mb-4 leading-relaxed">{feature.description}</p>
+                    <div className="space-y-2">
+                      {feature.details.map((detail, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>
+                          <span className="text-slate-400">{detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${feature.score}%` }} transition={{ delay: 1.2 + index * 0.2, duration: 1, ease: "easeOut" }} className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"/>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
 
-                {/* Model Results - Compact */}
-                <motion.div 
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                  className="order-1 lg:order-2"
-                >
-                  <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/50 shadow-2xl">
-                    
-                    {/* Header */}
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl flex items-center justify-center">
-                        <FaChartBar className="text-cyan-400 text-lg" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">AI Models</h3>
-                        <p className="text-slate-400 text-sm">Detection breakdown</p>
-                      </div>
-                    </div>
+      {/* Bottom Actions */}
+        <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2.5, duration: 0.6 }}
+        className="flex justify-center mt-12"
+        >
+        <button
+            onClick={() => window.location.href = "/"}
+            className="flex items-center gap-3 px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 rounded-xl transition-all duration-300 hover:scale-105 border border-slate-600/50"
+        >
+            <HomeIcon />
+            <span>Back to Home</span>
+        </button>
+        </motion.div>
+    </div>
+  );
+};
 
-                    {/* Compact Model Results */}
-                    <div className="space-y-4">
-                      {modelResults.map((model, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.6 + i * 0.1, duration: 0.5 }}
-                          className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${model.gradient} flex items-center justify-center`}>
-                                {model.icon}
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-semibold text-white">{model.label}</h4>
-                                <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs border ${getConfidenceColor(model.confidence)}`}>
-                                  {model.confidence}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-bold text-white">{model.value}%</div>
-                            </div>
-                          </div>
-                          
-                          {/* Compact Progress Bar */}
-                          <div className="h-2 bg-slate-600/50 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${model.value}%` }}
-          _                    transition={{ delay: 0.8 + i * 0.1, duration: 0.8, ease: "easeOut" }}
-                              className={`h-full bg-gradient-to-r ${getProgressColor(model.value)}`}
-                            />
-                          </div>
-                _        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
 
-              {/* Action Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.4, duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              >
-                <button
-                  onClick={() => (window.location.href = "/")}
-                  className="group bg-slate-700/50 hover:bg-slate-600/50 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 border border-slate-600/50 flex items-center gap-2"
-                >
-                  <FaHome className="group-hover:scale-110 transition-transform duration-300" />
-                  Back to Home
-                </button>
-                <button
-                  onClick={() => setShowDetailed(true)}
-                  className="group bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 hover:scale-105 shadow-xl relative overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                  <FaChartBar className="group-hover:scale-110 transition-transform duration-300 relative z-10" />
-                  <span className="relative z-10">Detailed Analysis</span>
-                  <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300 relative z-10" />
-                </button>
+// --- Main Result Component (now much simpler) ---
+const Result = () => {
+  // Simulate file type detection - in a real app, this would come from props or state
+  const [fileType] = useState('video'); // Change to 'audio' to test the other result
 
-                {/* Processing Time Info */}
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                  <FaCheckCircle className="text-emerald-400 text-sm" />
-                  <span className="text-slate-300 text-sm">Completed in 9.7s</span>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
+  const currentData = analysisData[fileType];
 
-        ) : (
-          <DetailedAnalysis onBack={() => setShowDetailed(false)} />
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  return (
+    <AnimatePresence mode="wait">
+      <AnalysisResult key={fileType} {...currentData} />
+    </AnimatePresence>
+  );
 };
 
 export default Result;

@@ -22,7 +22,7 @@ const useActiveSection = (isLoaded) => {
   useEffect(() => {
     if (!isLoaded) return;
 
-    const sections = ['home', 'about', 'products', 'news', 'faq', 'contact-us', 'team'];
+    const sections = ['home', 'about', 'products', 'news'];
     
     // The observer now fires when a section crosses the vertical center of the viewport.
     // This is much more reliable for sections of varying heights.
