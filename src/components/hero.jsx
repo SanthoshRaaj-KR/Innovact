@@ -90,8 +90,8 @@ const HeroSection = ({ Loaded, onFaceModelLoaded, activeSection }) => {
   // Centered cyan highlight for active link
   const getLinkClass = (id) =>
     activeSection === id
-      ? 'text-cyan-400 font-semibold border-b-2 border-cyan-400'
-      : 'text-gray-300 hover:text-cyan-400';
+      ? 'text-white font-semibold border-b-2 border-white'
+      : 'text-gray-300 hover:text-white';
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -113,62 +113,59 @@ const HeroSection = ({ Loaded, onFaceModelLoaded, activeSection }) => {
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/70 via-black/40 to-black z-20 pointer-events-none" />
 
       {/* Fixed Navbar - Centered */}
+{/* Fixed Navbar */}
       <nav className="w-full fixed top-0 z-50">
-      <div className="relative flex items-center px-[4vw] py-6 w-full">
-        {/* Logo */}
-        <div className="absolute left-[2vw] flex items-center">
-          <img src="/logoGenReal.png" alt="GenReal.AI Logo" className="h-[3.5rem]" />
+        <div className="relative flex items-center px-[4vw] py-6 w-full">
+          <div className="absolute left-[2vw] flex items-center">
+            <img src="/logoGenReal.png" alt="GenReal.AI Logo" className="h-[3.5rem]" />
+          </div>
+
+          <ul className="hidden md:flex justify-center items-center w-full text-[clamp(1rem,1.5vw,1.25rem)] gap-16 font-light">
+            {navLinks.map((link) => (
+              <li key={link.id}>
+                <button
+                  onClick={() => scrollToSection(link.id)}
+                  className={`${getLinkClass(link.id)} transition-colors duration-300 cursor-pointer pb-1`}
+                >
+                  {link.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="absolute right-[4vw] md:hidden">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d={isMobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Desktop Nav */}
-        <ul className="hidden md:flex justify-center items-center w-full text-[clamp(1rem,1.5vw,1.25rem)] gap-16 font-light">
-          {navLinks.map((link) => (
-            <li key={link.id}>
-              <button
-                onClick={() => scrollToSection(link.id)}
-                className={`${getLinkClass(link.id)} transition-all duration-300 cursor-pointer pb-1`}
-              >
-                {link.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {/* Mobile Menu Button */}
-        <div className="absolute right-[4vw] md:hidden">
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d={isMobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <ul className="md:hidden text-lg px-[4vw] pb-6 space-y-4">
-          {navLinks.map((link) => (
-            <li key={link.id}>
-              <button
-                onClick={() => scrollToSection(link.id)}
-                className={`${getLinkClass(link.id)} w-full text-left py-2 transition-all duration-300`}
-              >
-                {link.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </nav>
+        {isMobileMenuOpen && (
+          <ul className="md:hidden text-lg px-[4vw] pb-6 space-y-4">
+            {navLinks.map((link) => (
+              <li key={link.id}>
+                <button
+                  onClick={() => scrollToSection(link.id)}
+                  className={`${getLinkClass(link.id)} w-full text-left py-2 transition-colors duration-300`}
+                >
+                  {link.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </nav>
 
       {/* Hero Content */}
       <div className="absolute inset-0 z-30 pointer-events-none">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+        <div className="absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2 text-center">
           <h1 className="text-[clamp(3rem,12vw,8rem)] sm:text-[clamp(3.5rem,10vw,7rem)] md:text-[clamp(4rem,8vw,6rem)] lg:text-[clamp(4.5rem,7vw,5.5rem)] xl:text-[clamp(5rem,6vw,6rem)] leading-[0.9] font-bold whitespace-nowrap">
             Welcome to<br />
             <span className="bg-gradient-to-r from-[#6EE5F5] via-[#29A3B3] to-[#1397A9] bg-clip-text text-transparent">

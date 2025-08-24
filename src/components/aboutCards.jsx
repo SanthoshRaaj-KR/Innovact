@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, FileSearch } from 'lucide-react';
+import { Shield, FileSearch, Mic, Video, Code, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-/**
- * A component that displays two interactive, flippable cards for different services.
- * This version has been updated for full responsiveness and to fix 3D transform issues.
- */
 const DeepfakeDetectionPlatform = () => {
-  // State to track which cards are flipped. Using a Set is efficient.
   const [flippedCards, setFlippedCards] = useState(new Set());
-  // State to manage the initial fade-in animation.
   const [isLoaded, setIsLoaded] = useState(false);
   const navigate = useNavigate();
 
-  // Trigger the fade-in animation once the component mounts.
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  // Toggles the flipped state of a specific card by its index.
   const toggleCard = (index) => {
     setFlippedCards(prev => {
       const newSet = new Set(prev);
@@ -34,17 +26,12 @@ const DeepfakeDetectionPlatform = () => {
   const services = [
     {
       icon: Shield,
-      title: "Advanced Deepfake Detection",
       bigTitle: "DEEPFAKE DETECTION",
       subtitle: "Protect Your Content with AI-Powered Detection",
-      description:
-        "Our cutting-edge deepfake detection service identifies manipulated media using state-of-the-art artificial intelligence to safeguard visual and audio content authenticity in real-time.",
-      features: [
-        "Real-time Video Analysis",
-        "99.7% Detection Accuracy",
-        "Multiple Format Support",
-        "Batch Processing Available",
-        "API Integration Ready"
+      // Simplified content for the back of the card
+      subServices: [
+        { icon: Mic, name: "Audio Only" },
+        { icon: Video, name: "Audio & Video" }
       ],
       buttonLabel: "Try Detection Tool",
       path: "/deepfake-detection",
@@ -52,17 +39,12 @@ const DeepfakeDetectionPlatform = () => {
     },
     {
       icon: FileSearch,
-      title: "AI Plagiarism Prevention",
       bigTitle: "PLAGIARISM DETECTION",
       subtitle: "Ensure Academic Integrity with AI Detection",
-      description:
-        "Comprehensive plagiarism detection tools that identify AI-generated content and copied text with advanced language understanding, tailored for educational institutions and content creators.",
-      features: [
-        "AI Content Detection",
-        "Smart Plagiarism Analysis",
-        "Instant Detailed Reports",
-        "Multi-language Support",
-        "Citation Verification"
+      // Simplified content for the back of the card
+      subServices: [
+        { icon: Code, name: "Code Plagiarism" },
+        { icon: FileText, name: "Text & Essay Analysis" }
       ],
       buttonLabel: "Try Plagiarism Tool",
       path: "/plagiarism-detection",
@@ -71,11 +53,11 @@ const DeepfakeDetectionPlatform = () => {
   ];
 
   return (
-    <div className="relative min-h-screen py-16 sm:py-24 bg-black overflow-hidden" id="products">
+    <div className="relative min-h-screen py-10 sm:py-18 bg-black overflow-hidden" id="products">
       {/* Header */}
       <div className={`relative z-20 pt-8 pb-12 sm:pb-16 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-3xl lg:text-4xl font-bold text-white mb-6 leading-tight">
             <span className="block">
               <span className="text-cyan-400">Deepfake Detection</span>
               {' '} & {' '}
@@ -96,20 +78,19 @@ const DeepfakeDetectionPlatform = () => {
             const isFlipped = flippedCards.has(index);
 
             return (
-              // The card scene container. Sets up the 3D perspective.
               <div
                 key={index}
                 className={`group cursor-pointer transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} [perspective:1200px]`}
                 style={{ transitionDelay: `${index * 200}ms` }}
                 onClick={() => toggleCard(index)}
               >
-                {/* This container handles the actual 3D flip animation. */}
-                <div 
-                  className={`relative w-full h-[100vh] sm:h-[90vh] md:h-[85vh] lg:h-[75vh] transition-transform duration-1000 [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
+                {/* Responsive Height Container */}
+                <div
+                  className={`relative w-full min-h-[60vh] md:min-h-[70vh] lg:min-h-[65vh] transition-transform duration-1000 [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
                 >
-                  
-                  {/* Front Side of the Card */}
-                  <div 
+
+                  {/* Front Side */}
+                  <div
                     className="absolute inset-0 w-full h-full rounded-3xl bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 hover:border-cyan-500/40 transition-all duration-700 hover:scale-[1.02] flex flex-col items-center justify-center overflow-hidden [backface-visibility:hidden]"
                     style={{
                       backgroundImage: `url("${service.bgImage}")`,
@@ -125,60 +106,55 @@ const DeepfakeDetectionPlatform = () => {
                       <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-cyan-500/30 to-cyan-600/20 flex items-center justify-center mb-6 sm:mb-8 mx-auto group-hover:scale-110 transition-transform duration-500 backdrop-blur-sm border border-cyan-400/20">
                         <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-400" />
                       </div>
-                      
                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 mb-4 sm:mb-6 tracking-wide leading-tight">
                         {service.bigTitle}
                       </h2>
-                      
                       <p className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 max-w-md mx-auto leading-relaxed">
                         {service.subtitle}
                       </p>
-                      
                       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl px-6 py-4 border border-cyan-500/20">
                         <p className="text-cyan-300 text-sm font-medium uppercase tracking-widest">
                           Click for Details
                         </p>
                       </div>
                     </div>
-
-                    <div className="absolute top-4 right-4 w-2 h-2 bg-cyan-400 rounded-full opacity-60 animate-pulse"></div>
-                    <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-blue-400 rounded-full opacity-40 animate-pulse" style={{animationDelay: '1s'}}></div>
                   </div>
 
-                  {/* Back Side of the Card */}
-                  <div className="absolute inset-0 w-full h-full rounded-3xl bg-slate-900/70 backdrop-blur-xl border border-cyan-400/40 shadow-2xl shadow-cyan-500/10 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-slate-900/50 to-blue-500/5" />
-                    
+                  {/* Back Side */}
+                  <div className="absolute inset-0 w-full h-full rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-cyan-400/40 shadow-2xl p-6 sm:p-8 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden]">
                     <div className="relative z-10 flex-1 flex flex-col">
-                      <div className="flex items-center gap-4 mb-4 sm:mb-6">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 flex items-center justify-center backdrop-blur-sm border border-cyan-400/20 flex-shrink-0">
-                          <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-cyan-400" />
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-400/20 flex-shrink-0">
+                          <Icon className="w-7 h-7 text-cyan-400" />
                         </div>
                         <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">{service.title}</h3>
-                          <p className="text-cyan-300 font-medium text-sm">{service.subtitle}</p>
+                          <h3 className="text-2xl font-bold text-white">{service.bigTitle}</h3>
                         </div>
                       </div>
-
-                      <p className="text-gray-300 text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed">
-                        {service.description}
-                      </p>
-
-                      <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-                        <h4 className="text-white font-semibold text-base sm:text-lg mb-3 sm:mb-4">Key Features:</h4>
-                        {service.features.map((feature, idx) => (
-                          <div key={idx} className="flex items-center gap-3 text-gray-300">
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 flex-shrink-0" />
-                            <span className="text-sm font-medium">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
                       
-                      <div className="mt-auto pt-4"> {/* Pushes the button to the bottom */}
+                      <p className="text-gray-300 text-base mb-8">
+                        We offer specialized detection models tailored for different types of content.
+                      </p>
+                      
+                      {/* Simplified Sub-Services */}
+                      <div className="space-y-4 mb-8">
+                        <h4 className="text-white font-semibold text-lg mb-4">Detection Services:</h4>
+                        {service.subServices.map((sub, idx) => {
+                          const SubIcon = sub.icon;
+                          return (
+                            <div key={idx} className="flex items-center gap-4 p-4 bg-slate-800/60 rounded-lg border border-slate-700">
+                              <SubIcon className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                              <span className="text-base font-medium text-gray-200">{sub.name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-auto pt-4">
                         <button
-                          className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-400/40 text-white font-semibold text-base sm:text-lg hover:from-cyan-500/40 hover:to-blue-500/40 hover:border-cyan-300/60 transition-all duration-300 backdrop-blur-sm group/btn"
+                          className="w-full py-4 px-6 rounded-xl bg-cyan-600/30 border border-cyan-400/40 text-white font-semibold text-lg hover:bg-cyan-500/40 hover:border-cyan-300/60 transition-all duration-300 group/btn"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevents the card from flipping back
+                            e.stopPropagation();
                             navigate(service.path);
                           }}
                         >
@@ -187,10 +163,6 @@ const DeepfakeDetectionPlatform = () => {
                             <span className="inline-block group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
                           </span>
                         </button>
-                        
-                        <p className="text-center text-gray-400 text-xs mt-3 font-medium">
-                          Free trial available • No credit card required
-                        </p>
                       </div>
                     </div>
                   </div>
