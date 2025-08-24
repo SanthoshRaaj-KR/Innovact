@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { FiUploadCloud, FiMic, FiVideo, FiAlertTriangle } from 'react-icons/fi';
-// The Processing component is no longer imported or used here
-// import Processing from './processing';
 
 const UploadModal = ({ onAnalysisComplete }) => {
-  const [activeTab, setActiveTab] = useState('voice');
+  const [activeTab, setActiveTab] = useState('audio'); // default tab
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
-  // REMOVED: const [showProcessing, setShowProcessing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [linkInput, setLinkInput] = useState('');
   const [showFormatError, setShowFormatError] = useState(false);
@@ -16,10 +13,9 @@ const UploadModal = ({ onAnalysisComplete }) => {
 
   const fileInputRef = useRef(null);
   const modalRef = useRef(null);
-  const errorPopupRef = useRef(null);
 
   const fileTypes = {
-    voice: {
+    audio: {
       accept: '.mp3,.wav',
       formats: ['mp3', 'wav'],
       description: 'Audio: MP3, WAV',
@@ -43,7 +39,6 @@ const UploadModal = ({ onAnalysisComplete }) => {
     );
   }, []);
 
-  // Paste file from clipboard (no changes needed here)
   useEffect(() => {
     const handlePaste = (e) => {
       const items = e.clipboardData.items;
@@ -62,8 +57,7 @@ const UploadModal = ({ onAnalysisComplete }) => {
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
   }, [activeTab]);
-  
-  // All other helper functions (validateFileType, handleDrop, etc.) remain exactly the same...
+
   const validateFileType = (file) => {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const allowedFormats = fileTypes[activeTab].formats;
@@ -73,11 +67,14 @@ const UploadModal = ({ onAnalysisComplete }) => {
     }
     return true;
   };
+
   const showFormatErrorPopup = (fileExt, allowedFormats) => {
     setFormatErrorMessage(`Invalid file format: .${fileExt}\nPlease upload ${allowedFormats.map(f => `.${f}`).join(', ')} files only.`);
     setShowFormatError(true);
   };
+  
   const closeFormatError = () => setShowFormatError(false);
+
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
@@ -88,42 +85,64 @@ const UploadModal = ({ onAnalysisComplete }) => {
         setTimeout(() => setToastMessage(null), 3000);
     }
   };
+
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && validateFileType(selectedFile)) {
       setFile(selectedFile);
     }
   };
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setFile(null);
     setLinkInput('');
   };
 
-  // --- SIMPLIFIED handleConfirm FUNCTION ---
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!file && !linkInput.trim()) {
       setToastMessage("⚠️ Please select a file or enter a link");
       setTimeout(() => setToastMessage(null), 3000);
       return;
     }
 
-    // Immediately call the parent callback with the file type
+    let fileToAnalyze = file;
+
+    // If user provided a link, we need to fetch it
+    if (!file && linkInput.trim()) {
+      try {
+        setToastMessage("📥 Downloading file from link...");
+        const response = await fetch(linkInput);
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const fileName = linkInput.split('/').pop() || `file.${fileTypes[activeTab].formats[0]}`;
+        fileToAnalyze = new File([blob], fileName, { type: blob.type });
+        
+        setToastMessage("✅ File downloaded successfully!");
+      } catch (error) {
+        setToastMessage("❌ Failed to download file from link");
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+    }
+
     if (onAnalysisComplete) {
       const fileType = fileTypes[activeTab].type;
-      onAnalysisComplete(fileType);
+      onAnalysisComplete(fileType, fileToAnalyze);
     }
   };
 
   const getTabIcon = (tab) => {
     switch (tab) {
-      case 'voice': return <FiMic className="w-5 h-5" />;
+      case 'audio': return <FiMic className="w-5 h-5" />;
       case 'video': return <FiVideo className="w-5 h-5" />;
       default: return <FiUploadCloud className="w-5 h-5" />;
     }
   };
-  
-  // REMOVED: if (showProcessing) return <Processing />;
 
   return (
     <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative font-exo text-white overflow-hidden">
@@ -196,7 +215,6 @@ const UploadModal = ({ onAnalysisComplete }) => {
                 `Drag and drop your ${activeTab} here`
               )}
             </p>
-            {/* ... other JSX ... */}
           </label>
         </div>
 
@@ -228,8 +246,33 @@ const UploadModal = ({ onAnalysisComplete }) => {
             Analyze {activeTab}
           </button>
         </div>
+
+        {/* Toast Message */}
+        {toastMessage && (
+          <div className="fixed bottom-4 right-4 bg-cyan-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+            {toastMessage}
+          </div>
+        )}
+
+        {/* Format Error Modal */}
+        {showFormatError && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-slate-800 border border-red-400/30 rounded-lg p-6 max-w-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <FiAlertTriangle className="text-red-400" />
+                <h3 className="text-red-400 font-semibold">Invalid File Format</h3>
+              </div>
+              <p className="text-slate-300 mb-4 whitespace-pre-line">{formatErrorMessage}</p>
+              <button
+                onClick={closeFormatError}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      
     </div>
   );
 };
