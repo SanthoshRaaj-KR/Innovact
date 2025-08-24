@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { FaInfoCircle, FaTimes, FaEye } from 'react-icons/fa';
+import { FaEye } from 'react-icons/fa'; // Cleaned up imports
 import { motion } from 'framer-motion';
-import DeepfakeQuiz from './Quiz';
 import Result from "./result";
 
 const Processing = () => {
   const [progress, setProgress] = useState(0);
-  const [showNotification, setShowNotification] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [showResult, setShowResult] = useState(false);
   
@@ -31,12 +28,7 @@ const Processing = () => {
 
     animationFrame = requestAnimationFrame(step);
 
-    const timeout = setTimeout(() => {
-      setShowNotification(true);
-    }, 500);
-
     return () => {
-      clearTimeout(timeout);
       cancelAnimationFrame(animationFrame);
     };
   }, []);
@@ -72,7 +64,7 @@ const Processing = () => {
               <img
                 src="/logoGenReal.png"
                 alt="GenReal.AI Logo"
-                className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+                className="h-[3.5rem]"
               />
             </div>
             <div className="absolute inset-0 rounded-full border-2 border-cyan-400/20 animate-ping"></div>
@@ -127,9 +119,9 @@ const Processing = () => {
           </div>
           <p className="text-slate-400 text-xs sm:text-sm text-center">
             {progress < 30 ? 'Uploading and preprocessing...' :
-             progress < 70 ? 'Running deepfake detection algorithms...' :
-             progress < 100 ? 'Finalizing analysis...' :
-             'Analysis complete!'}
+              progress < 70 ? 'Running deepfake detection algorithms...' :
+              progress < 100 ? 'Finalizing analysis...' :
+              'Analysis complete!'}
           </p>
         </motion.div>
 
@@ -172,62 +164,6 @@ const Processing = () => {
           </motion.div>
         )}
       </div>
-
-      {/* Notification */}
-      {showNotification && (
-        <motion.div
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
-          className="fixed bottom-6 right-6 bg-slate-800/90 backdrop-blur-sm border border-cyan-400/30 px-6 py-5 rounded-xl shadow-2xl flex items-start gap-4 max-w-xs z-50"
-        >
-          <FaInfoCircle className="text-cyan-400 text-2xl mt-1" />
-          <div>
-            <p className="text-sm mb-3 leading-snug text-slate-200">
-              Think you're good at spotting deepfakes? Put your skills to the test.
-            </p>
-            <button
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm px-5 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105"
-              onClick={() => setShowQuiz(true)}
-            >
-              Take Quiz
-            </button>
-
-          </div>
-          <button
-                onClick={() => setShowNotification(false)}
-                className="absolute top-2 right-2 text-slate-400 hover:text-red-400 text-lg font-bold"
-                aria-label="Close"
-              >
-                &times;
-              </button>
-        </motion.div>
-      )}
-
-      {/* Quiz Modal */}
-      {showQuiz && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="relative max-w-full sm:max-w-4xl w-full max-h-[90vh] overflow-auto sm:overflow-hidden"
-          >
-            <DeepfakeQuiz onClose={() => setShowQuiz(false)} />
-          </motion.div>
-        </motion.div>
-      )}
     </div>
   );
 };

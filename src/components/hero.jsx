@@ -1,56 +1,61 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import GeometricAnimation from './GeometricAnimation';
-import FaceModel from './FaceModel';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const throttle = (func, limit) => {
   let inThrottle;
-  return function() {
+  return function () {
     const args = arguments;
     const context = this;
     if (!inThrottle) {
       func.apply(context, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 };
 
-const HeroSection = ({ Loaded, onFaceModelLoaded, activeSection }) => {
+const HeroSection = ({ Loaded, activeSection }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const statsRef = useRef(null);
   const heroRef = useRef(null);
+  const contentRef = useRef(null);
   const [isHeroInView, setIsHeroInView] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [animateScroll, setAnimateScroll] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    handleResize(); 
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    if (statsRef.current && Loaded) {
+    if (statsRef.current && contentRef.current && Loaded) {
       gsap.fromTo(
         statsRef.current,
-        { y: 100, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 0 }
+        { y: 60, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out', delay: 0.3 }
+      );
+
+      gsap.fromTo(
+        contentRef.current.children,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 0.1, stagger: 0.2 }
       );
     }
   }, [Loaded]);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimateScroll(true);
-    }, 2000);
+    }, 2500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Close mobile menu on scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsMobileMenuOpen(false);
@@ -72,86 +77,97 @@ const HeroSection = ({ Loaded, onFaceModelLoaded, activeSection }) => {
       if (currentHeroRef) observer.unobserve(currentHeroRef);
     };
   }, []);
-  
-  const handleFaceModelLoaded = useCallback(() => {
-    if (onFaceModelLoaded) {
-      onFaceModelLoaded();
-    }
-  }, [onFaceModelLoaded]);
 
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'products', label: 'Products' },
     { id: 'news', label: 'News' },
-    { id: 'faq', label: 'FAQ' },
-    { id: 'contact-us', label: 'Contact Us' },
-    { id: 'team', label: 'Founders' },
   ];
 
-  // Updated getLinkClass to use the activeSection prop from App.js
   const getLinkClass = (id) =>
     activeSection === id
-      ? 'text-white font-semibold border-b-2 border-white'
-      : 'text-gray-300 hover:text-white';
+      ? 'text-white font-semibold border-b-2 border-cyan-400'
+      : 'text-gray-300 hover:text-white hover:border-b-2 hover:border-cyan-400/50';
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    setIsMobileMenuOpen(false); // Close mobile menu after click
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <div className="relative h-screen bg-transparent text-white overflow-hidden" id="home" ref={heroRef}>
+    <div
+      className="relative h-screen bg-transparent text-white overflow-hidden"
+      id="home"
+      ref={heroRef}
+    >
       <GeometricAnimation paused={!isHeroInView} />
-      <FaceModel 
-        paused={!isHeroInView} 
-        disableTracking={isMobile} 
-        onModelLoaded={handleFaceModelLoaded}
-      />
 
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/70 via-black/40 to-black z-20 pointer-events-none" />
+      {/* Background Overlays */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/50 to-black/90 z-20 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-21 pointer-events-none" />
 
-      {/* Fixed Navbar - Always visible */}
-      <nav className="w-full fixed top-0 z-50 bg-gradient-to-b from-black to-transparent">
-        <div className="flex justify-between items-center px-[4vw] py-4 w-full">
-          <img src="/logoGenReal.png" alt="GenReal AI" className="h-[12vw] w-[12vw] sm:h-[8vw] sm:w-[8vw] md:h-[6.5vw] md:w-[6.5vw] lg:h-[6vw] lg:w-[6vw] xl:h-[5vw] xl:w-[5vw]" />
-          
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-              </svg>
-            </button>
+      {/* Navigation */}
+      <nav className="w-full fixed top-0 z-50 backdrop-blur-sm bg-black/20">
+        <div className="relative flex items-center px-[4vw] py-6 w-full">
+          {/* Logo */}
+          <div className="absolute left-[2vw] flex items-center">
+            <img src="/logoGenReal.png" alt="GenReal.AI Logo" className="h-[3.5rem]" />
           </div>
-          
-          {/* Desktop Navigation */}
-          <ul className="hidden md:flex text-lg gap-[4vw] font-light">
-            {navLinks.map(link => (
+
+          {/* Desktop Nav */}
+          <ul className="hidden md:flex justify-center items-center w-full text-base gap-8 font-light">
+            {navLinks.map((link) => (
               <li key={link.id}>
-                <button 
+                <button
                   onClick={() => scrollToSection(link.id)}
-                  className={`${getLinkClass(link.id)} transition-all duration-300 cursor-pointer`}
+                  className={`${getLinkClass(
+                    link.id
+                  )} transition-all duration-300 cursor-pointer pb-1`}
                 >
                   {link.label}
                 </button>
               </li>
             ))}
           </ul>
+
+          {/* Mobile Menu Button */}
+          <div className="absolute right-[4vw] md:hidden">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d={
+                    isMobileMenuOpen
+                      ? 'M6 18L18 6M6 6l12 12'
+                      : 'M4 6h16M4 12h16M4 18h16'
+                  }
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <ul className="md:hidden px-[4vw] pb-4 space-y-2 bg-black/80 backdrop-blur-md z-40">
-            {navLinks.map(link => (
+          <ul className="md:hidden px-[4vw] pb-6 space-y-4 bg-black/90 backdrop-blur-md">
+            {navLinks.map((link) => (
               <li key={link.id}>
-                <button 
+                <button
                   onClick={() => scrollToSection(link.id)}
-                  className={`${getLinkClass(link.id)} w-full text-left py-2 transition-all duration-300`}
+                  className={`${getLinkClass(
+                    link.id
+                  )} w-full text-left py-2 transition-all duration-300`}
                 >
                   {link.label}
                 </button>
@@ -161,45 +177,79 @@ const HeroSection = ({ Loaded, onFaceModelLoaded, activeSection }) => {
         )}
       </nav>
 
-      {/* Hero Content */}
-      <div className="absolute inset-0 z-30 pointer-events-none">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <h1 className="text-[clamp(3rem,12vw,8rem)] sm:text-[clamp(3.5rem,10vw,7rem)] md:text-[clamp(4rem,8vw,6rem)] lg:text-[clamp(4.5rem,7vw,5.5rem)] xl:text-[clamp(5rem,6vw,6rem)] leading-[0.9] font-bold whitespace-nowrap">
-            Welcome to<br />
-            <span className="bg-gradient-to-r from-[#6EE5F5] via-[#29A3B3] to-[#1397A9] bg-clip-text text-transparent">
-              GenReal
-            </span>.AI
-          </h1>
-          <p className="mt-[clamp(1rem,2vw,2rem)] text-[clamp(0.875rem,1.5vw,1.125rem)] text-gray-300">
-            Discover the new age of security
-          </p>
-          <div className="relative pointer-events-auto">
-            <button 
+      {/* Main Hero Content */}
+      <div className="absolute inset-0 z-30 flex flex-col justify-center items-center px-[4vw]">
+        <div className="text-center max-w-5xl" ref={contentRef}>
+          {/* Gradient Main Heading */}
+          <div className="opacity-0">
+            <h1 className="text-[clamp(3rem,9vw,7.5rem)] leading-[0.95] font-extrabold mb-4">
+              <span className="bg-gradient-to-r from-[#6EE5F5] via-[#29A3B3] to-[#1397A9] bg-clip-text text-transparent">
+                Welcome to GenReal AI
+              </span>
+            </h1>
+          </div>
+
+          {/* White Secondary Heading */}
+          <div className="opacity-0">
+            <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-semibold text-white mb-8">
+              The Future of Digital Security
+            </h2>
+          </div>
+
+          {/* CTA Button */}
+          <div className="opacity-0">
+            <button
               onClick={() => scrollToSection('products')}
-              className="get-started-btn mt-[clamp(1.5rem,3vw,2rem)] bg-orange-400 hover:bg-orange-500 text-white px-[clamp(1.5rem,2vw,2rem)] py-[clamp(0.75rem,1vw,1rem)] rounded-full text-[clamp(0.875rem,1vw,1rem)] font-semibold transition duration-300 transform hover:scale-105"
+              className="bg-orange-400 hover:bg-orange-500 text-white px-8 py-4 rounded-full text-lg font-semibold transition duration-300 transform hover:scale-105 shadow-lg"
             >
               Get Started →
             </button>
           </div>
         </div>
       </div>
-      
+
       {/* Stats Section */}
-      <div
-        ref={statsRef}
-        className="absolute opacity-0 w-full bottom-0 z-40 flex flex-col md:flex-row justify-around items-center px-8 py-4 space-y-6 md:space-y-0 pointer-events-auto"
-      >
-        <div className="text-center">
-          <h2 className="text-cyan-400 text-4xl font-bold">80%</h2>
-          <p className="text-gray-400 mt-2 text-sm max-w-xs">of companies lack protocols to handle deepfake attacks</p>
-        </div>
-        <div className='translate-y-6 h-[4vw] hidden md:flex justify-center items-center flex-col'>
-          <p className={`relative transition-all text-white/60 duration-1000 ease-out ${animateScroll ? 'top-0' : 'top-[20px]'}`}>Scroll Down</p>
-          <div className='w-full -mt-1 z-[99] h-[2vw] bg-black'></div>
-        </div>
-        <div className="text-center">
-          <h2 className="text-cyan-400 text-4xl font-bold">60%</h2>
-          <p className="text-gray-400 mt-2 text-sm max-w-xs">of people encountered a deepfake video in the past year</p>
+      <div ref={statsRef} className="absolute opacity-0 w-full bottom-8 z-40 px-[4vw]">
+        <div className="flex flex-col lg:flex-row justify-between items-center space-y-8 lg:space-y-0">
+          {/* Left Stat */}
+          <div className="text-center lg:text-left">
+            <div className="flex items-center justify-center lg:justify-start space-x-3 mb-2">
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+              <h3 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                80%
+              </h3>
+            </div>
+            <p className="text-gray-300 text-sm lg:text-base max-w-xs">
+              of companies lack adequate protocols to handle deepfake attacks
+            </p>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="hidden lg:flex flex-col items-center space-y-3">
+            <div
+              className={`transition-all duration-1000 ease-out ${
+                animateScroll ? 'opacity-100 translate-y-0' : 'opacity-60 translate-y-2'
+              }`}
+            >
+              <p className="text-gray-400 text-sm mb-2">Scroll to explore</p>
+              <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
+                <div className="w-1 h-3 bg-gray-400 rounded-full mt-2 animate-bounce"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Stat */}
+          <div className="text-center lg:text-right">
+            <div className="flex items-center justify-center lg:justify-end space-x-3 mb-2">
+              <h3 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                60%
+              </h3>
+              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+            </div>
+            <p className="text-gray-300 text-sm lg:text-base max-w-xs">
+              of people encountered a deepfake video in the past year
+            </p>
+          </div>
         </div>
       </div>
     </div>

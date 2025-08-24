@@ -84,7 +84,7 @@ const GeometricAnimation = ({ paused }) => {
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 70) {
-            ctx.strokeStyle = `hsla(${p1.hue}, 70%, 70%, 0.04)`;
+            ctx.strokeStyle = `hsla(${p1.hue}, 90%, 60%, 0.2)`;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -102,8 +102,8 @@ const GeometricAnimation = ({ paused }) => {
         if (p.y > canvas.height) p.y = 0;
 
         ctx.save();
-        ctx.globalAlpha = p.opacity * (0.5 + 0.5 * Math.sin(time * 0.002 + i));
-        ctx.fillStyle = `hsl(${p.hue}, 100%, 80%)`;
+        ctx.globalAlpha = p.opacity * (0.8 + 0.2 * Math.sin(time * 0.004 + i));
+        ctx.fillStyle = `hsl(${p.hue}, 100%, 60%)`; // richer/brighter color
         drawShape(ctx, p.x, p.y, p.size, p.shape);
         ctx.restore();
       });
@@ -112,7 +112,7 @@ const GeometricAnimation = ({ paused }) => {
     };
 
     handleResize(); // Call once initially to set up the canvas
-    window.addEventListener('resize', debouncedResize); // Use the debounced version for the listener
+    window.addEventListener('resize', debouncedResize); 
     animationIdRef.current = requestAnimationFrame(animate);
 
     return () => {

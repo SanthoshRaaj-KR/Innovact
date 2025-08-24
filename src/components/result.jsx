@@ -313,11 +313,14 @@ const Result = () => {
       </div>
 
       {/* Logo */}
-      <div className="absolute top-6 left-6 z-50">
-        <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
-          <span className="text-white font-bold text-xl">GR</span>
-        </div>
-      </div>
+        <div className="absolute left-[2vw] flex items-center">
+            <img 
+              src="/logoGenReal.png"   // <-- Replace with your actual logo path
+              alt="GenReal.AI Logo" 
+              className="h-[3.5rem]" // adjust size as needed
+            />
+          </div>
+
 
       <AnimatePresence mode="wait">
         {!showDetailed ? (

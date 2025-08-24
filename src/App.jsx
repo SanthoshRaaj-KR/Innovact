@@ -8,18 +8,13 @@ import Loader from './components/loader';
 import Hero from './components/hero';
 import About from './components/about';
 import News from './components/news';
-import ContactUs from './components/ContactUs';
+
 import Footer from './components/Footer';
-import FAQ from './components/FAQ';
+
 import Upload from './components/Upload';
 import Plagiarism from "./components/Plagiarism-upload";
 import DeepfakeDetectionPlatform from "./components/aboutCards";
-import Team from "./components/team";
 
-/**
- * This hook is responsible for detecting which section is currently active.
- * It has been updated to use a more stable detection method.
- */
 const useActiveSection = (isLoaded) => {
   const [activeSection, setActiveSection] = useState('home');
 
@@ -83,9 +78,6 @@ const Home = ({ isLoaded, onFaceModelLoaded }) => {
         <DeepfakeDetectionPlatform />
       </div>
       <News id="news" />
-      <FAQ id="faq" />
-      <ContactUs id="contact-us" />
-      <Team id="team" />
       <Footer />
     </div>
   );
