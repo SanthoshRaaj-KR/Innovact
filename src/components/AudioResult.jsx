@@ -1,29 +1,19 @@
 import React from 'react';
-import { FaHome, FaExclamationTriangle, FaBrain, FaCheckCircle, FaWaveSquare, FaMicrophone } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-
-// A neutral background component with cyan spherical highlights
-const DynamicBackground = () => (
-  <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-    <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl animate-pulse"></div>
-    <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-    <div className="absolute top-10 right-20 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl animate-pulse delay-500"></div>
-    <div className="absolute bottom-10 left-20 w-40 h-40 bg-cyan-400/10 rounded-full blur-3xl animate-pulse delay-1500"></div>
-  </div>
-);
+import { FaHome, FaExclamationTriangle, FaMicrophone, FaWaveSquare, FaBrain } from 'react-icons/fa';
 
 const AudioResult = ({ onReset, analysisResult }) => {
-  // --- Data Processing Logic ---
+  // --- Data Processing ---
   const prediction = analysisResult?.prediction?.toLowerCase() || (analysisResult?.error ? 'error' : 'real');
   const isFake = prediction === "fake";
   const hasError = !!analysisResult?.error;
 
   const realProb = analysisResult?.probabilities?.real || (hasError ? 0.13 : 0.87);
   const fakeProb = analysisResult?.probabilities?.fake || (hasError ? 0.87 : 0.13);
-  
+
   const realPercentage = Math.round(realProb * 100);
   const fakePercentage = Math.round(fakeProb * 100);
-  
+
   const primaryConfidence = isFake ? fakePercentage : realPercentage;
 
   const getConfidenceLevel = (confidence) => {
@@ -36,139 +26,160 @@ const AudioResult = ({ onReset, analysisResult }) => {
   const getResultColors = () => {
     if (isFake || hasError) {
       return {
-        primary: 'text-red-400',
-        bg: 'bg-red-500/20',
-        border: 'border-red-400/30',
-        stroke: '#ef4444', // Red
+        stroke: '#ef4444', // red
+        badgeBg: 'bg-red-500/20',
+        badgeBorder: 'border-red-400/30',
+        text: 'text-red-400'
       };
     }
     return {
-      primary: 'text-green-400',
-      bg: 'bg-green-500/20',
-      border: 'border-green-400/30',
-      stroke: '#22c55e', // Green
+      stroke: '#22c55e', // green
+      badgeBg: 'bg-green-500/20',
+      badgeBorder: 'border-green-400/30',
+      text: 'text-green-400'
     };
   };
 
   const colors = getResultColors();
 
-  // --- Dynamic card content based on results ---
-  const analysisCards = [
+  // --- Feature cards ---
+  const audioFeatures = [
     {
-      icon: FaMicrophone,
-      title: "Vocal Patterns",
-      description: isFake 
-        ? "Detected unnatural vocal tract resonances and harmonic inconsistencies." 
-        : "Vocal patterns appear natural and consistent with human speech.",
-    },
-    {
-      icon: FaWaveSquare,
-      title: "Spectral Analysis",
+      name: "Vocal Patterns",
+      score: isFake ? fakePercentage : realPercentage,
+      icon: <FaMicrophone />,
       description: isFake
-        ? "Found spectral artifacts and noise floor irregularities common in synthetic audio."
-        : "The audio's spectral integrity is high, with no signs of digital manipulation.",
+        ? "Detected unnatural resonances and harmonic inconsistencies."
+        : "Vocal patterns appear natural and consistent."
     },
     {
-      icon: FaBrain,
-      title: "AI Model Verdict",
-      description: `The neural network classified this sample with ${primaryConfidence}% confidence.`,
+      name: "Spectral Analysis",
+      score: isFake ? fakePercentage : realPercentage,
+      icon: <FaWaveSquare />,
+      description: isFake
+        ? "Spectral artifacts and irregularities common in synthetic audio."
+        : "Spectral integrity is high, no manipulation detected."
+    },
+    {
+      name: "AI Model Verdict",
+      score: primaryConfidence,
+      icon: <FaBrain />,
+      description: `The neural network classified this sample with ${primaryConfidence}% confidence.`
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-blue-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
-      <DynamicBackground />
-      
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-blue-950 text-cyan-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background glowing circles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-xl"></div>
+        <div className="absolute bottom-40 right-20 w-24 h-24 bg-cyan-400/15 rounded-full blur-lg"></div>
+        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-cyan-300/20 rounded-full blur-md"></div>
+        <div className="absolute bottom-20 left-1/3 w-20 h-20 bg-cyan-500/12 rounded-full blur-lg"></div>
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.25, 1, 0.5, 1] }}
-        className="relative z-10 w-full max-w-lg text-center"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="w-full max-w-4xl text-center relative z-10"
       >
-        <h1 className="text-3xl sm:text-4xl font-bold mb-6">
-          Analysis Complete
-        </h1>
+        {/* Header */}
+        <motion.h1
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-4xl font-bold mb-4 text-cyan-300"
+        >
+          Audio Analysis Complete
+        </motion.h1>
 
-        {/* --- Main Confidence Circle --- */}
-        <div className="w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-6 relative">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-slate-800" />
-            <motion.circle
-              cx="50"
-              cy="50"
-              r="45"
-              fill="transparent"
-              stroke={colors.stroke}
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 45}`}
-              initial={{ strokeDashoffset: 2 * Math.PI * 45 }}
-              animate={{ strokeDashoffset: 2 * Math.PI * 45 * (1 - primaryConfidence / 100) }}
-              transition={{ delay: 0.5, duration: 2, ease: "easeOut" }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center flex-col">
-            <span className={`text-5xl font-bold ${colors.primary}`}>
-              {primaryConfidence}%
-            </span>
-            <span className="text-sm text-slate-400 tracking-widest uppercase mt-1">Confidence</span>
-          </div>
-        </div>
-
-        {/* --- Result Badge --- */}
-        <div className={`inline-flex items-center gap-3 px-6 py-3 border rounded-full mb-3 ${colors.bg} ${colors.border}`}>
-          {isFake || hasError ? <FaExclamationTriangle className={colors.primary} /> : <FaCheckCircle className={colors.primary} />}
-          <span className={`font-semibold text-lg ${colors.primary}`}>
-            {hasError ? 'ERROR DETECTED' : (isFake ? 'DEEPFAKE DETECTED' : 'AUTHENTIC AUDIO')}
-          </span>
-        </div>
-        
-        <p className="text-slate-400 text-sm mb-8">
-          Confidence Level: <span className={`font-semibold ${colors.primary}`}>{getConfidenceLevel(primaryConfidence)}</span>
-        </p>
-
-        {hasError && (
-             <p className="text-orange-400 text-xs mb-8 -mt-4">
-                Analysis failed: {analysisResult.error}.
-             </p>
-        )}
-
-        {/* --- Analysis Cards Section --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
-          {analysisCards.map((card, index) => {
-            const Icon = card.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 * index + 0.5 }}
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4"
+        {/* Confidence Circle */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+          className="mb-8"
+        >
+          <div className="w-32 h-32 mx-auto mb-4 relative">
+            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-800" />
+              <motion.circle
+                cx="50" cy="50" r="42"
+                fill="transparent"
+                stroke={colors.stroke}
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 42}`}
+                initial={{ strokeDashoffset: 2 * Math.PI * 42 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 42 * (1 - primaryConfidence / 100) }}
+                transition={{ delay: 1.2, duration: 2.5, ease: "easeOut" }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+              <motion.span
+                className="text-2xl font-bold text-cyan-300"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.5, duration: 0.8 }}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <Icon className={`w-5 h-5 ${colors.primary}`} />
-                  <h3 className="font-semibold text-slate-200">{card.title}</h3>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{card.description}</p>
-              </motion.div>
-            );
-          })}
+                {primaryConfidence}%
+              </motion.span>
+            </div>
+          </div>
+
+          <div className={`inline-flex items-center gap-2 px-4 py-2 ${colors.badgeBg} ${colors.badgeBorder} rounded-full mb-2`}>
+            {isFake || hasError ? <FaExclamationTriangle className={colors.text} /> : <FaBrain className={colors.text} />}
+            <span className={`${colors.text} font-medium`}>
+              {hasError ? 'ERROR DETECTED' : (isFake ? 'DEEPFAKE DETECTED' : 'AUTHENTIC AUDIO')}
+            </span>
+          </div>
+          <p className="text-slate-400 text-sm">
+            Confidence Level: <span className={`${colors.text} font-semibold`}>{getConfidenceLevel(primaryConfidence)}</span>
+          </p>
+        </motion.div>
+
+        {/* Feature Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {audioFeatures.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index + 0.5 }}
+              className="bg-slate-900/50 backdrop-blur-sm p-6 rounded-xl border border-cyan-800/30 hover:border-cyan-600/50 transition-all duration-300"
+            >
+              <div className="text-2xl mb-3 text-cyan-400">{feature.icon}</div>
+              <h3 className="text-lg font-semibold mb-2 text-cyan-200">{feature.name}</h3>
+              <div className="text-2xl font-bold text-cyan-300 mb-2">{feature.score}%</div>
+              <p className="text-sm text-slate-400">{feature.description}</p>
+
+              <div className="w-full bg-slate-800 rounded-full h-2 mt-4">
+                <motion.div
+                  className="h-2 rounded-full bg-cyan-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${feature.score}%` }}
+                  transition={{ delay: 0.1 * index + 1, duration: 1 }}
+                />
+              </div>
+            </motion.div>
+          ))}
         </div>
-        
-        {/* --- Action Buttons --- */}
+
+        {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => window.location.href = '/'}
-            className="flex items-center justify-center gap-3 px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-300 text-cyan-200 transform hover:scale-105"
+            className="flex items-center gap-3 px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/30 rounded-lg transition-colors text-cyan-200"
           >
             <FaHome />
             <span>Back to Home</span>
           </button>
           <button
             onClick={onReset}
-            className="flex items-center justify-center gap-3 px-6 py-3 bg-cyan-600/30 hover:bg-cyan-600/40 border border-cyan-500/50 rounded-lg transition-all duration-300 text-cyan-300 transform hover:scale-105"
+            className="flex items-center gap-3 px-6 py-3 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 rounded-lg transition-colors text-cyan-300"
           >
-            <FaBrain />
+            <FaMicrophone />
             <span>Analyze Another</span>
           </button>
         </div>
