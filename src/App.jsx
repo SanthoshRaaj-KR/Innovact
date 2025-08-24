@@ -11,9 +11,9 @@ import News from './components/news';
 
 import Footer from './components/Footer';
 
-import Upload from './components/Upload';
-import Plagiarism from "./components/Plagiarism-upload";
+import Plagiarism from "./components/Plagiarism-detection";
 import DeepfakeDetectionPlatform from "./components/aboutCards";
+import DeepfakeDetectionUpload from "./pages/DeepFakeUpload";
 
 const useActiveSection = (isLoaded) => {
   const [activeSection, setActiveSection] = useState('home');
@@ -132,7 +132,7 @@ const AppContent = () => {
             path="/deepfake-detection"
             element={
               <PageWrapper>
-                <Upload />
+                <DeepfakeDetectionUpload />
               </PageWrapper>
             }
           />

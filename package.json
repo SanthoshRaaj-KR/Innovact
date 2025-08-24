@@ -13,6 +13,7 @@
     "@deck.gl/layers": "^9.1.12",
     "@deck.gl/react": "^9.1.12",
     "@gsap/react": "^2.1.2",
+    "@monaco-editor/react": "^4.7.0",
     "@react-three/drei": "^10.1.2",
     "@react-three/fiber": "^9.1.2",
     "@tailwindcss/vite": "^4.1.8",
