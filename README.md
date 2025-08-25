@@ -29,7 +29,7 @@ A cutting-edge web platform that provides AI-powered solutions for detecting dee
 
 ## Workflow Diagram
 
-<img src="./src/Workflow.png">
+<img src="./src/Worflow.png">
 
 ## Features Overview
 
