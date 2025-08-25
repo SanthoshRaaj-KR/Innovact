@@ -40,10 +40,6 @@ The platform offers two main services accessible through an intuitive web interf
 
 ## Presentation [(Click Here)](https://drive.google.com/file/d/1xiDrqVjFpP-eDgx4-cW4ueU2E1StIW4Q/view?usp=sharing)
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ---
 
-**GenReal** - "In a world where seeing is no longer believing, GenReal makes digital trust real again."
+"In a world where seeing is no longer believing, GenReal makes digital trust real again."
