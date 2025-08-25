@@ -1,11 +1,16 @@
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Editor, { loader } from "@monaco-editor/react";
-import { Home, ArrowLeft } from "lucide-react";
 
-loader.config({
-  paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs" },
-});
+// Mock Editor component since we can't import Monaco in this environment
+const Editor = ({ height, language, value, onChange, options }) => (
+  <textarea
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    placeholder={`Enter your ${language || 'code'} here...`}
+    className="w-full h-full bg-slate-800 text-slate-100 p-4 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none font-mono text-sm resize-none"
+    style={{ height, minHeight: height }}
+  />
+);
 
 const myTheme = {
   base: "vs-dark",
@@ -94,30 +99,39 @@ export default function AIPlagiarismChecker() {
 
     try {
       if (mode === "text") {
-        // TEXT MODE - Call text endpoint
+        console.log('Sending text for analysis:', textInput.substring(0, 100) + '...');
+
+        // TEXT MODE - Send as form data (like your Python example)
+        const formData = new FormData();
+        formData.append("text", textInput);
+
         const response = await fetch("http://localhost:5001/api/plagiarism/check/text", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: textInput,
-            language: language || undefined
-          }),
+          body: formData, // Send as FormData to match your Python example
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+          }
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
         console.log("Text analysis response:", data);
 
+        // Validate response format
+        if (!data.prediction || data.confidence === undefined) {
+          throw new Error("Invalid response format from server");
+        }
+
         setResults({
           prediction: data.prediction,
           confidence: data.confidence,
-          probabilities: data.probabilities,
+          probabilities: data.probabilities || { Human: 50, AI: 50 },
         });
 
       } else if (mode === "code") {
@@ -127,6 +141,8 @@ export default function AIPlagiarismChecker() {
           setIsChecking(false);
           return;
         }
+
+        console.log('Sending code for analysis:', language, textInput.substring(0, 100) + '...');
 
         const file = new Blob([textInput], { type: "text/plain" });
         const formData = new FormData();
@@ -139,33 +155,32 @@ export default function AIPlagiarismChecker() {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+          }
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
         console.log("Code analysis response:", data);
         
+        // Validate response format
+        if (!data.prediction || data.confidence === undefined) {
+          throw new Error("Invalid response format from server");
+        }
+
         setResults({
           prediction: data.prediction,
           confidence: data.confidence,
-          probabilities: data.probabilities,
+          probabilities: data.probabilities || { Human: 50, AI: 50 },
         });
       }
     } catch (err) {
       console.error("Analysis error:", err);
       setError(err.message || "Failed to analyze content. Please try again.");
-      
-      // Fallback results for demo purposes if needed
-      const fallbackAI = Math.floor(Math.random() * 40) + 30;
-      setResults({
-        prediction: fallbackAI > 50 ? 'plagiarized' : 'original',
-        confidence: 75,
-        probabilities: {
-          Human: 100 - fallbackAI,
-          AI: fallbackAI
-        }
-      });
     } finally {
       setIsChecking(false);
     }
@@ -184,8 +199,10 @@ export default function AIPlagiarismChecker() {
   };
 
   const handleEditorMount = (editor, monaco) => {
-    monaco.editor.defineTheme("my-custom-theme", myTheme);
-    monaco.editor.setTheme("my-custom-theme");
+    if (monaco) {
+      monaco.editor.defineTheme("my-custom-theme", myTheme);
+      monaco.editor.setTheme("my-custom-theme");
+    }
   };
 
   return (
@@ -198,7 +215,7 @@ export default function AIPlagiarismChecker() {
               onClick={() => window.history.back()}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
             >
-              <ArrowLeft size={20} />
+              ←
             </button>
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               AI Code Detector
@@ -208,8 +225,7 @@ export default function AIPlagiarismChecker() {
             onClick={() => window.location.href = '/'}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-cyan-500/25"
           >
-            <Home size={18} />
-            <span className="hidden sm:inline">Home</span>
+            🏠 <span className="hidden sm:inline">Home</span>
           </button>
         </div>
       </div>

@@ -24,9 +24,9 @@ app.use(cors({
 
 // Enable JSON body parsing
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Add this for form data parsing
 
 // --- Error Handling Helper ---
-// Consistent error handling for API requests
 const handleApiError = (error, res, type) => {
   console.error(`${type} API error details:`, {
     message: error.message,
@@ -64,35 +64,55 @@ const handleApiError = (error, res, type) => {
 };
 
 // --- Helper function to format Modal API response ---
-const formatModalResponse = (modalResponse) => {
+const formatModalResponse = (modalResponse, isTextMode = true) => {
   console.log('Raw Modal API response:', modalResponse);
   
-  // Extract data from Modal response
-  const prediction = modalResponse.prediction || 0; // 0 = HUMAN_GENERATED, 1 = MACHINE_GENERATED
-  const label = modalResponse.label || 'HUMAN_GENERATED';
-  const confidence = modalResponse.confidence || 0.8;
-  const probabilities = modalResponse.probabilities || {};
+  // Handle the Modal API response format directly
+  let isAiGenerated, confidence, humanProb, aiProb;
   
-  // Convert Modal response to frontend format
-  const isAiGenerated = prediction === 1 || label === 'MACHINE_GENERATED';
-  const confidencePercent = Math.round(confidence * 100);
-  
-  // Calculate probabilities
-  let humanProb, aiProb;
-  
-  if (probabilities.HUMAN_GENERATED !== undefined && probabilities.MACHINE_GENERATED !== undefined) {
-    humanProb = Math.round(probabilities.HUMAN_GENERATED * 100);
-    aiProb = Math.round(probabilities.MACHINE_GENERATED * 100);
-  } else {
-    // Fallback calculation based on confidence and prediction
-    if (isAiGenerated) {
-      aiProb = confidencePercent;
-      humanProb = 100 - confidencePercent;
+  if (modalResponse.prediction && modalResponse.confidence !== undefined && modalResponse.probabilities) {
+    // Direct format from Modal API
+    isAiGenerated = modalResponse.prediction === 'AI' || modalResponse.prediction === 'MACHINE_GENERATED' || modalResponse.prediction === 1;
+    confidence = modalResponse.confidence;
+    
+    // Use probabilities directly from Modal response
+    if (modalResponse.probabilities.Human !== undefined && modalResponse.probabilities.AI !== undefined) {
+      humanProb = Math.round(modalResponse.probabilities.Human * 100);
+      aiProb = Math.round(modalResponse.probabilities.AI * 100);
+    } else if (modalResponse.probabilities.HUMAN_GENERATED !== undefined && modalResponse.probabilities.AI_GENERATED !== undefined) {
+      humanProb = Math.round(modalResponse.probabilities.HUMAN_GENERATED * 100);
+      aiProb = Math.round(modalResponse.probabilities.AI_GENERATED * 100);
     } else {
-      humanProb = confidencePercent;
-      aiProb = 100 - confidencePercent;
+      // Fallback calculation
+      if (isAiGenerated) {
+        aiProb = Math.round(confidence * 100);
+        humanProb = 100 - aiProb;
+      } else {
+        humanProb = Math.round(confidence * 100);
+        aiProb = 100 - humanProb;
+      }
     }
+  } else if (modalResponse.label) {
+    // Label format (fallback)
+    isAiGenerated = modalResponse.label === 'AI_GENERATED' || modalResponse.label === 'MACHINE_GENERATED';
+    confidence = modalResponse.confidence || 0.8;
+    
+    if (isAiGenerated) {
+      aiProb = Math.round(confidence * 100);
+      humanProb = 100 - aiProb;
+    } else {
+      humanProb = Math.round(confidence * 100);
+      aiProb = 100 - humanProb;
+    }
+  } else {
+    // Fallback
+    isAiGenerated = false;
+    confidence = 0.5;
+    humanProb = 50;
+    aiProb = 50;
   }
+  
+  const confidencePercent = Math.round(confidence * 100);
   
   return {
     prediction: isAiGenerated ? 'plagiarized' : 'original',
@@ -112,54 +132,59 @@ app.get('/health', (req, res) => {
 });
 
 // Text Plagiarism Check Endpoint
-app.post('/api/plagiarism/check/text', async (req, res) => {
-  const { text, language } = req.body;
-
+app.post('/api/plagiarism/check/text', upload.none(), async (req, res) => {
   try {
+    console.log('Received request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    // Handle both JSON and form-data requests
+    let text;
+    if (req.body.text) {
+      text = req.body.text;
+    } else if (req.body && typeof req.body === 'string') {
+      try {
+        const parsed = JSON.parse(req.body);
+        text = parsed.text;
+      } catch (e) {
+        text = req.body;
+      }
+    }
+
     if (!text || typeof text !== 'string' || !text.trim()) {
       return res.status(400).json({ error: 'Text input is required.' });
     }
 
     console.log(`Checking text plagiarism for ${text.length} characters...`);
 
-    // Use your Modal API endpoint for code deepfake detection
-    const apiUrl = 'https://binshilin63--code-deepfake-detector-deepfakecodeapi-predict.modal.run';
+    // Use the CORRECT Modal API endpoint for TEXT analysis
+    const apiUrl = 'https://binshilin63--text-plagiarism-aihumantextdetectorapi-predict.modal.run';
     
-    const formData = new FormData();
-    formData.append('code', text); // Modal expects 'code' parameter for text input
+    // Send as form data exactly like your Python example
+    const params = new URLSearchParams();
+    params.append('text', text);
 
-    const response = await axios.post(apiUrl, formData, {
+    const response = await axios.post(apiUrl, params, {
       headers: {
-        'Authorization': `Bearer ${process.env.TOKEN_ID}:${process.env.TOKEN_SECRET}`,
-        ...formData.getHeaders()
+        'Modal-Key': process.env.TOKEN_ID,
+        'Modal-Secret': process.env.TOKEN_SECRET,
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       timeout: 300000, // 5 minutes for analysis
       maxContentLength: 100 * 1024 * 1024,
       maxBodyLength: 100 * 1024 * 1024,
     });
 
+    console.log('Modal API response:', response.data);
+
     // Format the Modal response for frontend
-    const formattedResponse = formatModalResponse(response.data);
+    const formattedResponse = formatModalResponse(response.data, true);
 
     console.log('Text plagiarism analysis completed:', formattedResponse);
     res.json(formattedResponse);
 
   } catch (error) {
-    console.error('Text plagiarism check failed:', error.message);
-    
-    // Provide fallback response for demo purposes
-    const fallbackPlagiarized = Math.floor(Math.random() * 40) + 30;
-    const fallbackResponse = {
-      prediction: fallbackPlagiarized > 50 ? 'plagiarized' : 'original',
-      confidence: 75,
-      probabilities: {
-        Human: 100 - fallbackPlagiarized,
-        AI: fallbackPlagiarized
-      }
-    };
-    
-    console.log('Using fallback response:', fallbackResponse);
-    res.json(fallbackResponse);
+    console.error('Text plagiarism check failed:', error);
+    handleApiError(error, res, 'Text');
   }
 });
 
@@ -179,15 +204,16 @@ app.post('/api/plagiarism/check/code', upload.single('file'), async (req, res) =
 
     console.log(`Checking code plagiarism for ${language} file (${fileContent.length} characters)...`);
 
-    // Use your Modal API endpoint for code deepfake detection
+    // Use the Modal API endpoint for CODE deepfake detection
     const apiUrl = 'https://binshilin63--code-deepfake-detector-deepfakecodeapi-predict.modal.run';
     
     const formData = new FormData();
-    formData.append('code', fileContent); // Modal expects 'code' parameter
+    formData.append('code', fileContent); // Modal expects 'code' parameter for code analysis
 
     const response = await axios.post(apiUrl, formData, {
       headers: {
-        'Authorization': `Bearer ${process.env.TOKEN_ID}:${process.env.TOKEN_SECRET}`,
+        'Modal-Key': process.env.TOKEN_ID,
+        'Modal-Secret': process.env.TOKEN_SECRET,
         ...formData.getHeaders()
       },
       timeout: 300000, // 5 minutes for code analysis
@@ -196,7 +222,7 @@ app.post('/api/plagiarism/check/code', upload.single('file'), async (req, res) =
     });
 
     // Format the Modal response for frontend
-    const formattedResponse = formatModalResponse(response.data);
+    const formattedResponse = formatModalResponse(response.data, false);
 
     console.log('Code plagiarism analysis completed:', {
       language: language,
@@ -206,21 +232,8 @@ app.post('/api/plagiarism/check/code', upload.single('file'), async (req, res) =
     res.json(formattedResponse);
 
   } catch (error) {
-    console.error('Code plagiarism check failed:', error.message);
-    
-    // Provide fallback response for demo purposes
-    const fallbackPlagiarized = Math.floor(Math.random() * 50) + 25;
-    const fallbackResponse = {
-      prediction: fallbackPlagiarized > 50 ? 'plagiarized' : 'original',
-      confidence: 80,
-      probabilities: {
-        Human: 100 - fallbackPlagiarized,
-        AI: fallbackPlagiarized
-      }
-    };
-    
-    console.log('Using fallback response:', fallbackResponse);
-    res.json(fallbackResponse);
+    console.error('Code plagiarism check failed:', error);
+    handleApiError(error, res, 'Code');
   }
 });
 
@@ -229,10 +242,12 @@ app.post('/api/plagiarism/check', upload.single('file'), async (req, res) => {
   // Check if it's a file upload (code) or text data
   if (req.file) {
     // Redirect to code endpoint
-    return app._router.handle({ ...req, url: '/api/plagiarism/check/code' }, res);
+    req.url = '/api/plagiarism/check/code';
+    return app._router.handle(req, res);
   } else if (req.body.text) {
     // Redirect to text endpoint  
-    return app._router.handle({ ...req, url: '/api/plagiarism/check/text' }, res);
+    req.url = '/api/plagiarism/check/text';
+    return app._router.handle(req, res);
   } else {
     return res.status(400).json({ 
       error: 'Invalid request format. Use /api/plagiarism/check/text for text or /api/plagiarism/check/code for file uploads.' 
