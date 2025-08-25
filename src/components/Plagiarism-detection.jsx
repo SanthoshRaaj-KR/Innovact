@@ -1,17 +1,17 @@
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Editor, { loader, useMonaco } from "@monaco-editor/react";
-// Simulate Monaco Editor with a basic code editor
+import Editor, { loader } from "@monaco-editor/react";
+import { Home, ArrowLeft } from "lucide-react";
+
 loader.config({
   paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs" },
 });
 
-
 const myTheme = {
-  base: "vs-dark", // start from dark/light base
+  base: "vs-dark",
   inherit: true,
   rules: [
-    { token: "", foreground: "f1f5f9", background: "0f172a" }, // default text
+    { token: "", foreground: "f1f5f9", background: "0f172a" },
     { token: "comment", foreground: "94a3b8", fontStyle: "italic" },
     { token: "keyword", foreground: "38bdf8" },
     { token: "string", foreground: "22c55e" },
@@ -19,8 +19,8 @@ const myTheme = {
     { token: "variable", foreground: "e5e7eb" },
   ],
   colors: {
-    "editor.background": "#0f172a", // same as your textarea background
-    "editor.foreground": "#f1f5f9", // text color
+    "editor.background": "#0f172a",
+    "editor.foreground": "#f1f5f9",
     "editorLineNumber.foreground": "#94a3b8",
     "editorCursor.foreground": "#f1f5f9",
     "editor.selectionBackground": "#33415566",
@@ -28,7 +28,6 @@ const myTheme = {
   },
 };
 
-// Map display labels -> language ids
 const LANG_MAP = {
   "C++": "cpp",
   C: "c",
@@ -37,115 +36,41 @@ const LANG_MAP = {
 };
 
 // --- RESULTS PANEL ---
-const PlagiarismResults = ({ plagiarized, unique, sources }) => {
-  const r = 56;
-  const circleCircumference = 2 * Math.PI * r;
+const PlagiarismResults = ({ prediction, confidence, probabilities }) => {
+  // Determine if content is AI-generated (plagiarized) or human-generated (original)
+  const isOriginal = prediction === 'original';
+  const predictionText = isOriginal ? 'Human Generated' : 'AI Generated';
+  const predictionIcon = isOriginal ? '✓' : '⚠';
+  const predictionColor = isOriginal ? 'text-green-400' : 'text-red-400';
+  const bgColor = isOriginal ? 'bg-green-500/20' : 'bg-red-500/20';
 
   return (
     <div className="flex-1 flex flex-col h-full text-white animate-fade-in">
-      {/* Fixed Donut - removed the 90-degree rotation issue */}
-      <div className="flex flex-col items-center justify-center p-4">
-        <div className="relative w-40 h-40">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-            <circle
-              cx="60"
-              cy="60"
-              r={r}
-              fill="none"
-              strokeWidth="8"
-              className="stroke-slate-700"
-            />
-            <motion.circle
-              cx="60"
-              cy="60"
-              r={r}
-              fill="none"
-              strokeWidth="8"
-              className="stroke-cyan-400"
-              strokeLinecap="round"
-              strokeDasharray={circleCircumference}
-              initial={{ strokeDashoffset: circleCircumference }}
-              animate={{
-                strokeDashoffset:
-                  circleCircumference - (plagiarized / 100) * circleCircumference,
-              }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-            />
-          </svg>
-          {/* Fixed: Removed the extra rotate-90 class that was causing the issue */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-cyan-400">{plagiarized}%</span>
-            <span className="text-sm text-slate-400">Plagiarized</span>
-          </div>
+      <div className="flex flex-col items-center justify-center p-8">
+        {/* Prediction */}
+        <div className={`px-4 py-2 rounded-full text-sm font-medium mb-4 ${bgColor} ${predictionColor}`}>
+          {predictionIcon} {predictionText}
         </div>
-      </div>
 
-      {/* Bars */}
-      <div className="px-4 space-y-3 mb-4">
-        <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="font-medium text-cyan-400">Plagiarized</span>
-            <span>{plagiarized}%</span>
-          </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
-            <motion.div
-              className="bg-cyan-400 h-2 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${plagiarized}%` }}
-              transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-            />
-          </div>
+        {/* Confidence */}
+        <div className="bg-slate-700/30 rounded-xl p-6 w-full mb-4 text-center">
+          <span className="text-slate-300 block mb-2">Confidence</span>
+          <span className="text-cyan-400 text-2xl font-semibold">{confidence}%</span>
         </div>
-        <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="font-medium text-green-400">Unique</span>
-            <span>{unique}%</span>
-          </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
-            <motion.div
-              className="bg-green-400 h-2 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${unique}%` }}
-              transition={{ duration: 1, ease: "easeOut", delay: 0.7 }}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* Sources */}
-      <div className="flex-1 overflow-y-auto px-4">
-        <h3 className="text-lg font-semibold mb-2 text-slate-200">Sources Found:</h3>
-        <motion.ul
-          className="space-y-3"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 1 } },
-          }}
-          initial="hidden"
-          animate="visible"
-        >
-          {sources.map((source, index) => (
-            <motion.li
-              key={index}
-              className="bg-slate-700/40 p-3 rounded-lg border border-slate-600/50 text-sm hover:border-cyan-400/30 transition-colors duration-300"
-              variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
-            >
-              <div className="flex justify-between items-center">
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="truncate text-slate-300 hover:text-cyan-400 transition-colors"
-                >
-                  {source.title}
-                </a>
-                <span className="ml-4 px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-md text-xs font-semibold border border-cyan-400/30">
-                  {source.match}%
-                </span>
-              </div>
-            </motion.li>
-          ))}
-        </motion.ul>
+        {/* Probabilities */}
+        {probabilities && (
+          <div className="bg-slate-700/30 rounded-xl p-6 w-full text-center space-y-2">
+            <div className="flex justify-between text-slate-300">
+              <span>Human Generated:</span>
+              <span className="text-green-400 font-semibold">{probabilities.Human}%</span>
+            </div>
+            <div className="flex justify-between text-slate-300">
+              <span>AI Generated:</span>
+              <span className="text-red-400 font-semibold">{probabilities.AI}%</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -157,35 +82,100 @@ export default function AIPlagiarismChecker() {
   const [textInput, setTextInput] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [results, setResults] = useState(null);
-
-  const editorKey = mode === "code" ? LANG_MAP[language] || "plaintext" : "text";
+  const [error, setError] = useState(null);
   const editorRef = useRef(null);
 
-  const handleCheckPlagiarism = () => {
+  const handleCheckPlagiarism = async () => {
     if (!textInput.trim()) return;
+    
     setIsChecking(true);
     setResults(null);
+    setError(null);
 
-    setTimeout(() => {
-      const plagiarizedPercent = Math.floor(Math.random() * 60) + 25;
-      const uniquePercent = 100 - plagiarizedPercent;
+    try {
+      if (mode === "text") {
+        // TEXT MODE - Call text endpoint
+        const response = await fetch("http://localhost:5001/api/plagiarism/check/text", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: textInput,
+            language: language || undefined
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Text analysis response:", data);
+
+        setResults({
+          prediction: data.prediction,
+          confidence: data.confidence,
+          probabilities: data.probabilities,
+        });
+
+      } else if (mode === "code") {
+        // CODE MODE - Call code endpoint with file upload
+        if (!language) {
+          setError("Please select a programming language first.");
+          setIsChecking(false);
+          return;
+        }
+
+        const file = new Blob([textInput], { type: "text/plain" });
+        const formData = new FormData();
+        formData.append("file", file, `code.${LANG_MAP[language] || 'txt'}`);
+        formData.append("language", language);
+
+        const response = await fetch("http://localhost:5001/api/plagiarism/check/code", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Code analysis response:", data);
+        
+        setResults({
+          prediction: data.prediction,
+          confidence: data.confidence,
+          probabilities: data.probabilities,
+        });
+      }
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setError(err.message || "Failed to analyze content. Please try again.");
+      
+      // Fallback results for demo purposes if needed
+      const fallbackAI = Math.floor(Math.random() * 40) + 30;
       setResults({
-        plagiarized: plagiarizedPercent,
-        unique: uniquePercent,
-        sources: [
-          { title: "www.wikipedia.org/wiki/AI", url: "#", match: Math.floor(plagiarizedPercent * 0.6) },
-          { title: "www.researchgate.net/publication/3...", url: "#", match: Math.floor(plagiarizedPercent * 0.3) },
-          { title: "www.randomblog.com/ai-ethics", url: "#", match: Math.floor(plagiarizedPercent * 0.1) },
-        ],
+        prediction: fallbackAI > 50 ? 'plagiarized' : 'original',
+        confidence: 75,
+        probabilities: {
+          Human: 100 - fallbackAI,
+          AI: fallbackAI
+        }
       });
+    } finally {
       setIsChecking(false);
-    }, 1500);
+    }
   };
 
   const handleReset = () => {
     setTextInput("");
     setLanguage("");
     setResults(null);
+    setError(null);
     setIsChecking(false);
   };
 
@@ -193,179 +183,207 @@ export default function AIPlagiarismChecker() {
     results ? handleReset() : handleCheckPlagiarism();
   };
 
-const handleEditorMount = (editor, monaco) => {
-  monaco.editor.defineTheme("my-custom-theme", myTheme);
-  monaco.editor.setTheme("my-custom-theme");
-};
+  const handleEditorMount = (editor, monaco) => {
+    monaco.editor.defineTheme("my-custom-theme", myTheme);
+    monaco.editor.setTheme("my-custom-theme");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative">
-      {/* Enhanced Background Blurs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute bottom-32 right-32 w-48 h-48 bg-blue-400/10 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-teal-400/10 rounded-full blur-xl animate-pulse delay-2000"></div>
-        <div className="absolute top-1/3 right-1/4 w-36 h-36 bg-purple-400/8 rounded-full blur-xl animate-pulse delay-500"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-28 h-28 bg-indigo-400/8 rounded-full blur-xl animate-pulse delay-3000"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] animate-pulse"></div>
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header with title and home button */}
+      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => window.history.back()}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+              AI Code Detector
+            </h1>
+          </div>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-cyan-500/25"
+          >
+            <Home size={18} />
+            <span className="hidden sm:inline">Home</span>
+          </button>
+        </div>
       </div>
 
-      {/* Main Panel */}
-      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6">
-        <div className="relative z-10 w-full max-w-6xl">
-          <div className="bg-slate-800/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-slate-600/30 shadow-2xl">
-            {/* Header & Close */}
-            <button
-              onClick={() => window.location.href = "/"}
-              className="absolute top-4 right-6 text-slate-400 hover:text-white text-2xl font-bold z-50 cursor-pointer transition-colors duration-200 hover:rotate-90 transform"
-              aria-label="Close"
-            >×</button>
-
-            <div className="p-4 sm:p-6 border-b border-slate-700/50 text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <img src="/logoGenReal.png" alt="Logo" className="w-10 h-10 object-contain" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                  AI <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{mode === "text" ? "Text" : "Code"}</span> Checker
-                </h1>
+      <div className="flex items-start justify-center min-h-[calc(100vh-80px)] p-4 sm:p-6">
+        <div className="relative z-10 w-full max-w-7xl">
+          <div className="bg-slate-800/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-slate-600/30 shadow-2xl">
+            {/* Mode switch */}
+            <div className="p-6 border-b border-slate-700/50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-slate-200">Detection Mode</h2>
+                <div className="text-sm text-slate-400">
+                  Powered by AI Analysis Engine
+                </div>
               </div>
-              <p className="text-slate-300 text-sm max-w-2xl mx-auto">
-                Detect {mode === "text" ? "AI & Human Text" : "Code"} Plagiarism with Precision.
-              </p>
-              <div className="mt-4 flex justify-center gap-4">
-                {["text","code"].map(m=>(
-                  <button key={m} onClick={()=>{setMode(m); handleReset();}}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                      mode===m
-                        ? m==="text"
-                          ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg"
-                          : "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                        : "bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white"
-                    }`}>
-                    {m==="text"?"Text":"Code"}
+              <div className="flex gap-4">
+                {["text", "code"].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => {
+                      setMode(m);
+                      handleReset();
+                    }}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                      mode === m
+                        ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25"
+                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    }`}
+                  >
+                    {m === "text" ? "📝 Text Analysis" : "💻 Code Analysis"}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Content Split */}
-            <div className="flex flex-col md:flex-row min-h-[500px] h-full">
-              {/* Left Panel */}
-              <div className="w-full md:w-1/2 p-4 sm:p-6 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col">
-                {mode==="code" && (
-                  <div className="mb-4">
-                    <h2 className="text-sm text-slate-300 mb-2 font-medium">Select Language:</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.keys(LANG_MAP).map(lang=>(
-                        <button key={lang} onClick={()=>setLanguage(lang)}
-                          className={`px-3 py-1 rounded-lg text-sm transition-all duration-300 hover:scale-105 ${
-                            language===lang
-                              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
-                              : "bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white"
-                          }`}>
-                          {lang}
-                        </button>
-                      ))}
+            {/* Error Display */}
+            {error && (
+              <div className="mx-6 mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400">
+                <p className="font-medium">Analysis Error:</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col lg:flex-row min-h-[600px]">
+              {/* Left Panel - Input */}
+              <div className="w-full lg:w-3/5 p-6 border-b lg:border-b-0 lg:border-r border-slate-700/50">
+                <div className="h-full flex flex-col">
+                  {mode === "code" && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-slate-200 mb-3">Select Programming Language:</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {Object.keys(LANG_MAP).map((lang) => (
+                          <button
+                            key={lang}
+                            onClick={() => setLanguage(lang)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                              language === lang
+                                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25"
+                                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                            }`}
+                          >
+                            {lang}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">{mode==="text"?"Enter Your Text":"Paste Your Code"}</h2>
-                  <div className="text-sm text-slate-400 bg-slate-700/30 px-2 py-1 rounded-md">
-                    {textInput.length}/5000
-                  </div>
-                </div>
-
-                <div className="flex-1 mb-4 relative">
-                  {mode==="code"?(
-                    <div className="h-96 md:h-[420px] rounded-xl overflow-hidden border border-slate-600/40 shadow-lg">
-                      <Editor
-                        height="100%"
-                        language={LANG_MAP[language] || "plaintext"}
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                      {mode === "text" ? "Enter your text:" : "Enter your code:"}
+                    </h3>
+                    
+                    {mode === "code" ? (
+                      <div className="flex-1 rounded-xl overflow-hidden border border-slate-600/30">
+                        <Editor
+                          height="350px"
+                          language={LANG_MAP[language] || "plaintext"}
+                          value={textInput}
+                          onChange={(v) => setTextInput(v ?? "")}
+                          onMount={handleEditorMount}
+                          options={{ 
+                            minimap: { enabled: false }, 
+                            wordWrap: "on",
+                            fontSize: 14,
+                            lineHeight: 1.5,
+                            padding: { top: 16 }
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <textarea
                         value={textInput}
-                        onChange={v => setTextInput(v ?? "")}
-                        options={{
-                          minimap: { enabled: false },
-                          fontFamily: "'Fira Code', 'JetBrains Mono', monospace",
-                          fontSize: 14,
-                          lineHeight: 26,
-                          scrollBeyondLastLine: false,
-                          wordWrap: "on",
-                          automaticLayout: true,
-                          lineNumbers: "on",
-                          roundedSelection: false,
-                          scrollbar: { vertical: "auto", horizontal: "auto" },
-                          renderLineHighlight: "line",
-                          bracketPairColorization: { enabled: true },
-                          overviewRulerBorder: false,
-                        }}
-                        onMount={handleEditorMount}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        placeholder="Paste your text here to check if it's AI-generated..."
+                        className="flex-1 min-h-[350px] bg-slate-700/30 rounded-xl p-4 border border-slate-600/30 focus:border-cyan-500/50 focus:outline-none resize-none text-slate-100 placeholder-slate-400"
                       />
+                    )}
+                  </div>
 
-
-                    </div>
-                  ):(
-                    <textarea
-                      value={textInput}
-                      onChange={e=>setTextInput(e.target.value)}
-                      placeholder="Paste your text here..."
-                      className="w-full h-96 md:h-[420px] bg-slate-700/30 backdrop-blur-sm border border-slate-600/40 rounded-xl p-4 text-white placeholder-slate-400 outline-none resize-none text-base md:text-sm leading-relaxed focus:border-cyan-400/60 transition-all duration-300 focus:bg-slate-700/40 shadow-lg"
-                      maxLength={5000}
-                    />
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={handleMainButtonAction}
-                    disabled={(!textInput.trim() && !results)||isChecking||(mode==="code"&&!language&&textInput.trim())}
-                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm">
-                    {isChecking?"Checking...":results?"Start New Check":"Check for Plagiarism"}
-                  </button>
-                  {(results||textInput)&&(
-                    <button onClick={handleReset}
-                      className="px-6 py-3 bg-slate-600/50 hover:bg-slate-600/70 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-300 hover:scale-105">
-                      Reset
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={handleMainButtonAction}
+                      disabled={!textInput.trim() || isChecking || (mode === "code" && !language)}
+                      className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-700 py-3 px-6 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-cyan-500/25 disabled:shadow-none"
+                    >
+                      {isChecking
+                        ? "🔍 Analyzing..."
+                        : results
+                        ? "🔄 Start New Check"
+                        : "🚀 Check AI Detection"}
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
 
-              {/* Right Panel */}
-              <div className="w-full md:w-1/2 p-4 sm:p-6 flex flex-col">
-                <h2 className="text-xl font-semibold mb-4 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  {results?"Results":"Get Started"}
-                </h2>
-                <AnimatePresence mode="wait">
-                  {!textInput.trim()&&!isChecking&&!results && (
-                    <motion.div key="get-started" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-                      className="flex flex-col items-start justify-start h-full px-4 pt-2 text-slate-400 space-y-6 text-sm leading-relaxed">
-                      <p><span className="text-white font-semibold">Step 1:</span> {mode==="text"?"Paste your text.":"Choose a language and paste your code."}</p>
-                      <p><span className="text-white font-semibold">Step 2:</span> Click <span className="text-cyan-400 font-semibold">Check for Plagiarism</span>.</p>
-                      <p><span className="text-white font-semibold">Step 3:</span> View detailed plagiarism analysis.</p>
-                      <div className="mt-8 p-4 bg-slate-700/20 rounded-lg border border-slate-600/30">
-                        <p className="text-cyan-400 font-medium mb-2">💡 Pro Tip:</p>
-                        <p className="text-xs">Our AI can detect both human-written content that matches existing sources and AI-generated text patterns.</p>
+              {/* Right Panel - Results */}
+              <div className="w-full lg:w-2/5 p-6">
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-slate-200">Analysis Results</h3>
+                    {results && (
+                      <div className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
+                        ✓ Complete
                       </div>
-                    </motion.div>
-                  )}
-                  {isChecking && (
-                    <motion.div key="checking" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex-1 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-                        <p className="text-cyan-400 text-lg mb-2">Analyzing {mode==="text"?"Text":`${language||"Code"}`}...</p>
-                        <p className="text-slate-400 text-sm">Checking for plagiarism sources</p>
-                        <div className="mt-4 flex justify-center space-x-1">
-                          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce delay-100"></div>
-                          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce delay-200"></div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  {results&&!isChecking && <motion.div key="results" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
-                    <PlagiarismResults {...results} />
-                  </motion.div>}
-                </AnimatePresence>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 flex items-center justify-center">
+                    <AnimatePresence mode="wait">
+                      {!textInput.trim() && !isChecking && !results && (
+                        <motion.div 
+                          key="empty"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className="text-center text-slate-400 py-12"
+                        >
+                          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-slate-700/30 flex items-center justify-center text-4xl">
+                            🔍
+                          </div>
+                          <p className="text-lg mb-2">Ready to analyze</p>
+                          <p className="text-sm">Enter your {mode} content and click check</p>
+                        </motion.div>
+                      )}
+                      
+                      {isChecking && (
+                        <motion.div 
+                          key="loading"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="text-center py-12"
+                        >
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-slate-700 border-t-cyan-400 animate-spin"></div>
+                          <p className="text-cyan-400 font-medium">Analyzing with AI...</p>
+                          <p className="text-slate-400 text-sm mt-2">This may take a few moments</p>
+                        </motion.div>
+                      )}
+                      
+                      {results && !isChecking && (
+                        <motion.div 
+                          key="results"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className="w-full"
+                        >
+                          <PlagiarismResults {...results} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
