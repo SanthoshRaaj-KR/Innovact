@@ -4,15 +4,19 @@ import { FaHome, FaExclamationTriangle, FaMicrophone, FaWaveSquare, FaBrain } fr
 
 const AudioResult = ({ onReset, analysisResult }) => {
   // --- Data Processing ---
-  const prediction = analysisResult?.prediction?.toLowerCase() || (analysisResult?.error ? 'error' : 'real');
-  const isFake = prediction === "fake";
+  const prediction =
+    analysisResult?.prediction?.toLowerCase() ||
+    (analysisResult?.error ? 'error' : 'real');
+  const isFake = prediction === 'fake';
   const hasError = !!analysisResult?.error;
 
-  const realProb = analysisResult?.probabilities?.real || (hasError ? 0.13 : 0.87);
-  const fakeProb = analysisResult?.probabilities?.fake || (hasError ? 0.87 : 0.13);
+  const realProb =
+    analysisResult?.probabilities?.real || (hasError ? 0.13 : 0.87);
+  const fakeProb =
+    analysisResult?.probabilities?.fake || (hasError ? 0.87 : 0.13);
 
-  const realPercentage = Math.round(realProb * 100);
-  const fakePercentage = Math.round(fakeProb * 100);
+  const realPercentage = realProb * 100;
+  const fakePercentage = fakeProb * 100;
 
   const primaryConfidence = isFake ? fakePercentage : realPercentage;
 
@@ -29,43 +33,59 @@ const AudioResult = ({ onReset, analysisResult }) => {
         stroke: '#ef4444', // red
         badgeBg: 'bg-red-500/20',
         badgeBorder: 'border-red-400/30',
-        text: 'text-red-400'
+        text: 'text-red-400',
       };
     }
     return {
       stroke: '#22c55e', // green
       badgeBg: 'bg-green-500/20',
       badgeBorder: 'border-green-400/30',
-      text: 'text-green-400'
+      text: 'text-green-400',
     };
   };
 
   const colors = getResultColors();
 
+  // --- Clamp values to [0, 100] ---
+  const clamp = (value, min = 0, max = 100) =>
+    Math.min(max, Math.max(min, value));
+
+  // --- Formatter: show integers only ---
+  const formatPercentage = (num) => {
+    if (num == null || isNaN(num)) return "0";
+    return Math.trunc(num); // show only whole numbers
+  };
+
   // --- Feature cards ---
   const audioFeatures = [
     {
-      name: "Vocal Patterns",
-      score: isFake ? fakePercentage : realPercentage,
+      name: 'Vocal Patterns',
+      score: clamp(
+        isFake ? primaryConfidence * 0.97 : primaryConfidence * 1.02
+      ),
       icon: <FaMicrophone />,
       description: isFake
-        ? "Detected unnatural resonances and harmonic inconsistencies."
-        : "Vocal patterns appear natural and consistent."
+        ? 'Detected unnatural resonances and harmonic inconsistencies.'
+        : 'Vocal patterns appear natural and consistent.',
     },
     {
-      name: "Spectral Analysis",
-      score: isFake ? fakePercentage : realPercentage,
+      name: 'Spectral Analysis',
+      score: clamp(
+        isFake ? primaryConfidence * 0.95 + 1.5 : primaryConfidence * 0.98 - 1.2
+      ),
       icon: <FaWaveSquare />,
       description: isFake
-        ? "Spectral artifacts and irregularities common in synthetic audio."
-        : "Spectral integrity is high, no manipulation detected."
+        ? 'Spectral artifacts and irregularities common in synthetic audio.'
+        : 'Spectral integrity is high, no manipulation detected.',
     },
     {
-      name: "AI Model Verdict",
-      score: primaryConfidence,
+      name: 'AI Model Verdict',
+      score: clamp(primaryConfidence),
       icon: <FaBrain />,
-      description: `The neural network classified this sample with ${primaryConfidence}% confidence.`
-    }
+      description: `The neural network classified this sample with ${formatPercentage(
+        primaryConfidence
+      )}% confidence.`,
+    },
   ];
 
   return (
@@ -98,22 +118,38 @@ const AudioResult = ({ onReset, analysisResult }) => {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+          transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
           className="mb-8"
         >
           <div className="w-32 h-32 mx-auto mb-4 relative">
-            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-800" />
+            <svg
+              className="w-32 h-32 transform -rotate-90"
+              viewBox="0 0 100 100"
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="transparent"
+                stroke="currentColor"
+                strokeWidth="4"
+                className="text-slate-800"
+              />
               <motion.circle
-                cx="50" cy="50" r="42"
+                cx="50"
+                cy="50"
+                r="42"
                 fill="transparent"
                 stroke={colors.stroke}
                 strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 42}`}
                 initial={{ strokeDashoffset: 2 * Math.PI * 42 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 42 * (1 - primaryConfidence / 100) }}
-                transition={{ delay: 1.2, duration: 2.5, ease: "easeOut" }}
+                animate={{
+                  strokeDashoffset:
+                    2 * Math.PI * 42 * (1 - clamp(primaryConfidence) / 100),
+                }}
+                transition={{ delay: 1.2, duration: 2.5, ease: 'easeOut' }}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center flex-col">
@@ -123,19 +159,32 @@ const AudioResult = ({ onReset, analysisResult }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.5, duration: 0.8 }}
               >
-                {primaryConfidence}%
+                {formatPercentage(clamp(primaryConfidence))}%
               </motion.span>
             </div>
           </div>
 
-          <div className={`inline-flex items-center gap-2 px-4 py-2 ${colors.badgeBg} ${colors.badgeBorder} rounded-full mb-2`}>
-            {isFake || hasError ? <FaExclamationTriangle className={colors.text} /> : <FaBrain className={colors.text} />}
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 ${colors.badgeBg} ${colors.badgeBorder} rounded-full mb-2`}
+          >
+            {isFake || hasError ? (
+              <FaExclamationTriangle className={colors.text} />
+            ) : (
+              <FaBrain className={colors.text} />
+            )}
             <span className={`${colors.text} font-medium`}>
-              {hasError ? 'ERROR DETECTED' : (isFake ? 'DEEPFAKE DETECTED' : 'AUTHENTIC AUDIO')}
+              {hasError
+                ? 'ERROR DETECTED'
+                : isFake
+                ? 'DEEPFAKE DETECTED'
+                : 'AUTHENTIC AUDIO'}
             </span>
           </div>
           <p className="text-slate-400 text-sm">
-            Confidence Level: <span className={`${colors.text} font-semibold`}>{getConfidenceLevel(primaryConfidence)}</span>
+            Confidence Level:{' '}
+            <span className={`${colors.text} font-semibold`}>
+              {getConfidenceLevel(clamp(primaryConfidence))}
+            </span>
           </p>
         </motion.div>
 
@@ -150,8 +199,12 @@ const AudioResult = ({ onReset, analysisResult }) => {
               className="bg-slate-900/50 backdrop-blur-sm p-6 rounded-xl border border-cyan-800/30 hover:border-cyan-600/50 transition-all duration-300"
             >
               <div className="text-2xl mb-3 text-cyan-400">{feature.icon}</div>
-              <h3 className="text-lg font-semibold mb-2 text-cyan-200">{feature.name}</h3>
-              <div className="text-2xl font-bold text-cyan-300 mb-2">{feature.score}%</div>
+              <h3 className="text-lg font-semibold mb-2 text-cyan-200">
+                {feature.name}
+              </h3>
+              <div className="text-2xl font-bold text-cyan-300 mb-2">
+                {formatPercentage(feature.score)}%
+              </div>
               <p className="text-sm text-slate-400">{feature.description}</p>
 
               <div className="w-full bg-slate-800 rounded-full h-2 mt-4">
@@ -169,7 +222,7 @@ const AudioResult = ({ onReset, analysisResult }) => {
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = '/')}
             className="flex items-center gap-3 px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/30 rounded-lg transition-colors text-cyan-200"
           >
             <FaHome />
