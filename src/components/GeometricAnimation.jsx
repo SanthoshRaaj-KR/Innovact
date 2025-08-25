@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-// A simple debounce function helper. It ensures a function doesn't run
-// until a certain amount of time has passed without it being called.
+
 const debounce = (func, delay) => {
   let timeoutId;
   return function() {

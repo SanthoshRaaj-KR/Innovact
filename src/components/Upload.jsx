@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import gsap from 'gsap';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { gsap } from 'gsap';
 import { FiUploadCloud, FiMic, FiVideo, FiAlertTriangle } from 'react-icons/fi';
-import Processing from './processing';
 
-const UploadModal = () => {
-  const [activeTab, setActiveTab] = useState('voice'); // default to voice
+const UploadModal = ({ onAnalysisComplete }) => {
+  const [activeTab, setActiveTab] = useState('audio'); // default tab
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [showProcessing, setShowProcessing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [linkInput, setLinkInput] = useState('');
   const [showFormatError, setShowFormatError] = useState(false);
@@ -15,21 +13,21 @@ const UploadModal = () => {
 
   const fileInputRef = useRef(null);
   const modalRef = useRef(null);
-  const errorPopupRef = useRef(null);
 
-  // File type configurations (only audio + video)
   const fileTypes = {
-    voice: {
+    audio: {
       accept: '.mp3,.wav',
       formats: ['mp3', 'wav'],
       description: 'Audio: MP3, WAV',
-      maxSize: '50MB'
+      maxSize: '50MB',
+      type: 'audio'
     },
     video: {
       accept: '.mp4',
       formats: ['mp4'],
       description: 'Video: MP4',
-      maxSize: '100MB'
+      maxSize: '100MB',
+      type: 'video'
     }
   };
 
@@ -41,7 +39,6 @@ const UploadModal = () => {
     );
   }, []);
 
-  // Paste file from clipboard
   useEffect(() => {
     const handlePaste = (e) => {
       const items = e.clipboardData.items;
@@ -64,7 +61,6 @@ const UploadModal = () => {
   const validateFileType = (file) => {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const allowedFormats = fileTypes[activeTab].formats;
-    
     if (!allowedFormats.includes(fileExtension)) {
       showFormatErrorPopup(fileExtension, allowedFormats);
       return false;
@@ -73,43 +69,20 @@ const UploadModal = () => {
   };
 
   const showFormatErrorPopup = (fileExt, allowedFormats) => {
-    setFormatErrorMessage(
-      `Invalid file format: .${fileExt}\nPlease upload ${allowedFormats.map(f => `.${f}`).join(', ')} files only.`
-    );
+    setFormatErrorMessage(`Invalid file format: .${fileExt}\nPlease upload ${allowedFormats.map(f => `.${f}`).join(', ')} files only.`);
     setShowFormatError(true);
-    
-    if (errorPopupRef.current) {
-      gsap.fromTo(
-        errorPopupRef.current,
-        { scale: 0, opacity: 0, y: 50 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.7)' }
-      );
-    }
   };
-
-  const closeFormatError = () => {
-    if (errorPopupRef.current) {
-      gsap.to(errorPopupRef.current, {
-        scale: 0,
-        opacity: 0,
-        y: 50,
-        duration: 0.3,
-        ease: 'back.in(1.7)',
-        onComplete: () => setShowFormatError(false)
-      });
-    }
-  };
+  
+  const closeFormatError = () => setShowFormatError(false);
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    if (e.dataTransfer.files?.length > 0) {
-      const droppedFile = e.dataTransfer.files[0];
-      if (validateFileType(droppedFile)) {
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && validateFileType(droppedFile)) {
         setFile(droppedFile);
         setToastMessage("📁 File Dropped!");
         setTimeout(() => setToastMessage(null), 3000);
-      }
     }
   };
 
@@ -117,8 +90,6 @@ const UploadModal = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile && validateFileType(selectedFile)) {
       setFile(selectedFile);
-      setToastMessage("✅ File Selected!");
-      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
@@ -134,18 +105,44 @@ const UploadModal = () => {
       setTimeout(() => setToastMessage(null), 3000);
       return;
     }
-    setShowProcessing(true);
+
+    let fileToAnalyze = file;
+
+    // If user provided a link, we need to fetch it
+    if (!file && linkInput.trim()) {
+      try {
+        setToastMessage("📥 Downloading file from link...");
+        const response = await fetch(linkInput);
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const fileName = linkInput.split('/').pop() || `file.${fileTypes[activeTab].formats[0]}`;
+        fileToAnalyze = new File([blob], fileName, { type: blob.type });
+        
+        setToastMessage("✅ File downloaded successfully!");
+      } catch (error) {
+        setToastMessage("❌ Failed to download file from link");
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+    }
+
+    if (onAnalysisComplete) {
+      const fileType = fileTypes[activeTab].type;
+      onAnalysisComplete(fileType, fileToAnalyze);
+    }
   };
 
   const getTabIcon = (tab) => {
     switch (tab) {
-      case 'voice': return <FiMic className="w-5 h-5" />;
+      case 'audio': return <FiMic className="w-5 h-5" />;
       case 'video': return <FiVideo className="w-5 h-5" />;
-      default: return <FiFile className="w-5 h-5" />;
+      default: return <FiUploadCloud className="w-5 h-5" />;
     }
   };
-
-  if (showProcessing) return <Processing />;
 
   return (
     <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative font-exo text-white overflow-hidden">
@@ -196,14 +193,8 @@ const UploadModal = () => {
         {/* Dropzone */}
         <div
           onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          className={`border-2 border-dashed rounded-xl p-8 mb-6 text-center transition-all duration-300 font-inter ${
-            dragging ? 'border-cyan-400 bg-cyan-400/10 scale-105' : 'border-cyan-400/50 bg-slate-700/30'
-          }`}
+          onDragOver={(e) => { e.preventDefault(); }}
+          className="border-2 border-dashed rounded-xl p-8 mb-6 text-center transition-all duration-300 font-inter border-cyan-400/50 bg-slate-700/30"
         >
           <label htmlFor="file-upload" className="cursor-pointer block">
             <input
@@ -224,15 +215,10 @@ const UploadModal = () => {
                 `Drag and drop your ${activeTab} here`
               )}
             </p>
-            <p className="text-sm text-slate-300 mt-2 leading-relaxed">
-              <span className="text-cyan-400 font-semibold">{fileTypes[activeTab].description}</span>
-              <br />
-              <span className="text-yellow-400">Max file size: {fileTypes[activeTab].maxSize}</span>
-            </p>
           </label>
         </div>
 
-        {/* Separator */}
+        {/* Separator & Link Input */}
         <div className="text-center text-slate-400 mb-6 relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-600"></div>
@@ -240,14 +226,9 @@ const UploadModal = () => {
           <div className="relative bg-slate-800 px-4 text-sm">or paste a link</div>
         </div>
 
-        {/* Link input field */}
         <div className="mb-8">
-          <label htmlFor="link-input" className="block mb-2 text-sm font-semibold text-slate-300">
-            Paste a {activeTab} link here
-          </label>
           <input
             type="text"
-            id="link-input"
             className="w-full px-4 py-3 rounded-xl bg-slate-700/50 text-white placeholder-slate-400 border border-cyan-400/30 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             placeholder={`https://example.com/your-${activeTab}.${fileTypes[activeTab].formats[0]}`}
             value={linkInput}
@@ -258,50 +239,40 @@ const UploadModal = () => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-4">
           <button
-            className="bg-slate-600 hover:bg-slate-500 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
-            onClick={() => window.location.replace('/')}
-          >
-            Cancel
-          </button>
-          <button
             className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleConfirm}
+            disabled={!file && !linkInput.trim()}
           >
             Analyze {activeTab}
           </button>
         </div>
-      </div>
 
-      {/* Format Error Popup */}
-      {showFormatError && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div
-            ref={errorPopupRef}
-            className="bg-slate-800 border border-red-400/50 rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl"
-          >
-            <div className="mb-4">
-              <FiAlertTriangle className="text-red-400 text-5xl mx-auto animate-bounce" />
-            </div>
-            <h3 className="text-xl font-bold text-red-400 mb-4">Invalid File Format</h3>
-            <p className="text-slate-300 mb-6 whitespace-pre-line leading-relaxed">
-              {formatErrorMessage}
-            </p>
-            <button
-              onClick={closeFormatError}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
-            >
-              Got it!
-            </button>
+        {/* Toast Message */}
+        {toastMessage && (
+          <div className="fixed bottom-4 right-4 bg-cyan-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+            {toastMessage}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-xl shadow-2xl animate-fade-in-out z-50 backdrop-blur-sm border border-cyan-400/30">
-          {toastMessage}
-        </div>
-      )}
+        {/* Format Error Modal */}
+        {showFormatError && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-slate-800 border border-red-400/30 rounded-lg p-6 max-w-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <FiAlertTriangle className="text-red-400" />
+                <h3 className="text-red-400 font-semibold">Invalid File Format</h3>
+              </div>
+              <p className="text-slate-300 mb-4 whitespace-pre-line">{formatErrorMessage}</p>
+              <button
+                onClick={closeFormatError}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

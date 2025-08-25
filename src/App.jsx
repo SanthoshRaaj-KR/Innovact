@@ -11,9 +11,9 @@ import News from './components/news';
 
 import Footer from './components/Footer';
 
-import Upload from './components/Upload';
-import Plagiarism from "./components/Plagiarism-upload";
+import Plagiarism from "./components/Plagiarism-detection";
 import DeepfakeDetectionPlatform from "./components/aboutCards";
+import DeepfakeDetectionUpload from "./pages/DeepFakeUpload";
 
 const useActiveSection = (isLoaded) => {
   const [activeSection, setActiveSection] = useState('home');
@@ -22,7 +22,7 @@ const useActiveSection = (isLoaded) => {
   useEffect(() => {
     if (!isLoaded) return;
 
-    const sections = ['home', 'about', 'products', 'news', 'faq', 'contact-us', 'team'];
+    const sections = ['home', 'about', 'products', 'news'];
     
     // The observer now fires when a section crosses the vertical center of the viewport.
     // This is much more reliable for sections of varying heights.
@@ -132,7 +132,7 @@ const AppContent = () => {
             path="/deepfake-detection"
             element={
               <PageWrapper>
-                <Upload />
+                <DeepfakeDetectionUpload />
               </PageWrapper>
             }
           />
