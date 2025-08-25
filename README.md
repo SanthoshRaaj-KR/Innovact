@@ -1,12 +1,49 @@
-# React + Vite
+# GenReal - Deepfake Detection & AI Plagiarism Prevention
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A cutting-edge web platform that provides AI-powered solutions for detecting deepfakes and preventing plagiarism. Built with modern web technologies to ensure digital integrity and content authenticity.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Deepfake Detection
+- **Real-time Video Analysis** - Instant detection of manipulated media
+- **Detection Accuracy** - State-of-the-art AI algorithms
+- **Multiple Format Support** - Works with various video and image formats
+- **Batch Processing** - Handle multiple files simultaneously
+- **API Integration Ready** - Easy integration with existing systems
 
-## Expanding the ESLint configuration
+### AI Plagiarism Prevention
+- **AI Content Detection** - Identifies AI-generated text
+- **Smart Plagiarism Analysis** - Advanced text comparison algorithms
+- **Instant Detailed Reports** - Comprehensive analysis results
+- **Multi-language Support** - Works across different languages
+- **Citation Verification** - Ensures proper attribution
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+
+- **Frontend**: React 19.1.0, React Router DOM
+- **Styling**: Tailwind CSS, Framer Motion for animations
+- **3D Graphics**: Three.js, React Three Fiber, React Three Drei
+- **Data Visualization**: D3.js, Deck.gl
+- **Build Tool**: Vite
+- **Development**: ESLint for code quality
+
+## Workflow Diagram
+
+<img src="./src/Workflow.png">
+
+## Features Overview
+
+The platform offers two main services accessible through an intuitive web interface:
+
+1. **Advanced Deepfake Detection** - Protects visual and audio content authenticity using state-of-the-art AI
+2. **AI Plagiarism Prevention** - Ensures academic integrity with comprehensive content analysis
+
+## Presentation [(Click Here)](https://drive.google.com/file/d/1xiDrqVjFpP-eDgx4-cW4ueU2E1StIW4Q/view?usp=sharing)
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**GenReal** - "In a world where seeing is no longer believing, GenReal makes digital trust real again."
